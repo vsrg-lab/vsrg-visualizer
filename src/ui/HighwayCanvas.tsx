@@ -4,9 +4,16 @@ import { useEffect, useRef } from "react";
 import type { Clock } from "../engine/clock";
 import type { Chart } from "../model/types";
 import { Highway } from "../render/highway";
+import { BASE_BG } from "../theme";
+
+type HighwayCanvasProps = {
+	chart: Chart;
+	clock: Clock;
+	pxPerUnit: number;
+};
 
 /** Mounts a Pixi Application for the given chart and drives it from the shared Clock each frame. */
-export function HighwayCanvas({ chart, clock, pxPerUnit }: { chart: Chart; clock: Clock; pxPerUnit: number }) {
+export function HighwayCanvas({ chart, clock, pxPerUnit }: HighwayCanvasProps) {
 	const hostRef = useRef<HTMLDivElement>(null);
 	const clockRef = useRef(clock);
 	const pxRef = useRef(pxPerUnit);
@@ -27,7 +34,7 @@ export function HighwayCanvas({ chart, clock, pxPerUnit }: { chart: Chart; clock
 
 		void (async () => {
 			const created = new Application();
-			await created.init({ background: "#0e0e16", resizeTo: host });
+			await created.init({ background: BASE_BG, resizeTo: host });
 			if (canceled) {
 				created.destroy(true, { children: true });
 				return;
@@ -54,5 +61,5 @@ export function HighwayCanvas({ chart, clock, pxPerUnit }: { chart: Chart; clock
 		};
 	}, [chart]);
 
-	return <div ref={hostRef} style={{ width: "100%", height: "100%" }} />;
+	return <div ref={hostRef} className="w-full h-full" />;
 }

@@ -3,8 +3,12 @@ import { useRef, useState, type DragEvent } from "react";
 import type { Chart } from "../model/types";
 import { parseUrc } from "../parser/urc";
 
+type FileDropProps = {
+	onChart: (chart: Chart) => void;
+};
+
 /** file picker + drag-drop zone that parses a .urc file and reports the result. */
-export function FileDrop({ onChart }: { onChart: (chart: Chart) => void }) {
+export function FileDrop({ onChart }: FileDropProps) {
 	const [errors, setErrors] = useState<string[]>([]);
 	const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,7 +36,7 @@ export function FileDrop({ onChart }: { onChart: (chart: Chart) => void }) {
 				onDragOver={e => e.preventDefault()}
 				onDrop={onDrop}
 				onClick={() => inputRef.current?.click()}
-				style={{ border: "2px dashed #556", padding: "16px", cursor: "pointer", textAlign: "center" }}
+				className="border-2 border-dashed border-base-300 rounded-box p-4 text-center cursor-pointer text-base-content/70 hover:border-base-content/40"
 			>
 				Drop a .urc file here, or click to choose
 			</div>
@@ -48,7 +52,7 @@ export function FileDrop({ onChart }: { onChart: (chart: Chart) => void }) {
 				}}
 			/>
 			{errors.length > 0 && (
-				<ul style={{ color: "#ff8888" }}>
+				<ul className="text-error text-sm mt-2">
 					{errors.map((m, i) => <li key={i}>{m}</li>)}
 				</ul>
 			)}

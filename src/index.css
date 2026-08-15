@@ -1,3 +1,45 @@
+@import "tailwindcss";
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+    name: "slate";
+    default: true;
+    prefersdark: true;
+    color-scheme: dark;
+
+	--color-base-100: #0e0e16;
+	--color-base-200: #17171f;
+	--color-base-300: #24242e;
+	--color-base-content: #d4d4d8;
+
+	--color-primary: #4b5563;
+	--color-primary-content: #f4f4f5;
+	--color-secondary: #33333d;
+	--color-secondary-content: #d4d4d8;
+	--color-accent: #52525b;
+	--color-accent-content: #f4f4f5;
+	--color-neutral: #1f1f27;
+	--color-neutral-content: #d4d4d8;
+	--color-info: #64748b;
+	--color-info-content: #f4f4f5;
+	--color-success: #4b5563;
+	--color-success-content: #f4f4f5;
+	--color-warning: #71717a;
+	--color-warning-content: #18181b;
+	--color-error: #7f5252;
+	--color-error-content: #fef2f2;
+
+	--radius-selector: 0.375rem;
+	--radius-field: 0.375rem;
+	--radius-box: 0.5rem;
+
+	--size-selector: 0.25rem;
+	--size-field: 0.25rem;
+
+	--border: 1px;
+	--depth: 0;
+	--noise: 0;
+}
+
 html, body, #root {
     margin: 0;
     height: 100%;

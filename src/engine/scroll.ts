@@ -3,6 +3,13 @@ import type { TimingPoint } from "../model/types";
 /** Maps chart time (ms) to a cumulative scroll position (scroll-units) with SV applid. */
 export type ScrollModel = { positionAt(timeMs: number): number };
 
+function segmentIndexAt(timing: TimingPoint[], timeMs: number): number {
+	let i = 0;
+	while (i + 1 <timing.length && timing[i + 1].timeMs <= timeMs)
+		i++;
+	return i;
+}
+
 /**
  * Builds a scroll model where position is the time-integral of the SV multiplier.
  * 1 scroll-unit == 1ms at multiplier 1.0. Timing points must be ascending and start at 0.
@@ -15,10 +22,7 @@ export function buildScrollModel(timing: TimingPoint[]): ScrollModel {
 	}
 
 	function positionAt(timeMs: number): number {
-		let i = 0;
-		while (i + 1 < timing.length && timing[i + 1].timeMs <= timeMs)
-			i++;
-
+		const i = segmentIndexAt(timing, timeMs);
 		return cumulative[i] + (timeMs - timing[i].timeMs) * timing[i].multiplier;
 	}
 
@@ -31,4 +35,9 @@ export function buildScrollModel(timing: TimingPoint[]): ScrollModel {
  */
 export function screenY(positionUnits: number, playheadUnits: number, pxPerUnit: number, receptorY: number): number {
 	return receptorY - (positionUnits - playheadUnits) * pxPerUnit;
+}
+
+/** Returns the timing point active at the given time - the same segment `positionAt` resolves internally. */
+export function currentTiming(timing: TimingPoint[], timeMs: number): TimingPoint {
+	return timing[segmentIndexAt(timing, timeMs)];
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { buildScrollModel, screenY } from "./scroll";
+import { buildScrollModel, screenY, currentTiming } from "./scroll";
 import type { TimingPoint } from "../model/types";
 
 const tp = (timeMs: number, multiplier: number): TimingPoint => ({
@@ -32,5 +32,18 @@ describe("screenY", () => {
 
 	it("places a future note above the receptor (smaller y) in down-scroll", () => {
 		expect(screenY(1100, 1000, 2, 800)).toBe(800 - 200);
+	});
+});
+
+describe("currentTiming", () => {
+	it("returns the only timing point when there's just one", () => {
+		expect(currentTiming([tp(0, 1)], 5000)).toEqual(tp(0, 1));
+	});
+
+	it("returns the point active at the given time, including at its exact boundary", () => {
+		const points = [tp(0, 1), tp(1000, 2)];
+		expect(currentTiming(points, 999)).toEqual(points[0]);
+		expect(currentTiming(points, 1000)).toEqual(points[1]);
+		expect(currentTiming(points, 5000)).toEqual(points[1]);
 	});
 });
