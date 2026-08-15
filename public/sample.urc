@@ -1,0 +1,23 @@
+@URC 1.1
+@Metadata
+Original: osu!mania
+Title: Test Song
+Artist: Tester
+Creator: Me
+Version: Normal
+@Layout
+Type: 4
+Special: None
+@Timing
+0, 120.0, 4/4, 1.0
+4000, 120.0, 4/4, 2.0
+@Notes
+0, 0, N
+500, 1, N
+1000, 2, N
+1500, 3, N
+2000, 0, LS
+2500, 0, LE
+4000, 1, N
+4250, 2, N
+4500, 3, N
