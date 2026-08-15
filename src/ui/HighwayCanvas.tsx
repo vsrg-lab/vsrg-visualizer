@@ -1,0 +1,58 @@
+import { Application } from "pixi.js";
+import { useEffect, useRef } from "react";
+
+import type { Clock } from "../engine/clock";
+import type { Chart } from "../model/types";
+import { Highway } from "../render/highway";
+
+/** Mounts a Pixi Application for the given chart and drives it from the shared Clock each frame. */
+export function HighwayCanvas({ chart, clock, pxPerUnit }: { chart: Chart; clock: Clock; pxPerUnit: number }) {
+	const hostRef = useRef<HTMLDivElement>(null);
+	const clockRef = useRef(clock);
+	const pxRef = useRef(pxPerUnit);
+
+	useEffect(() => {
+		clockRef.current = clock;
+		pxRef.current = pxPerUnit;
+	}, [clock, pxPerUnit]);
+
+	useEffect(() => {
+		const host = hostRef.current;
+		if (!host)
+			return;
+
+		let app: Application | null = null;
+		let highway: Highway | null = null;
+		let canceled = false;
+
+		void (async () => {
+			const created = new Application();
+			await created.init({ background: "#0e0e16", resizeTo: host });
+			if (canceled) {
+				created.destroy(true, { children: true });
+				return;
+			}
+
+			app = created;
+			host.appendChild(app.canvas);
+			highway = new Highway(app.stage, chart, {
+				laneWidth: 64,
+				receptorY: app.screen.height - 90,
+				height: app.screen.height
+			});
+
+			app.ticker.add(() => highway?.render(clockRef.current.timeMs, pxRef.current));
+		})();
+
+		return () => {
+			canceled = true;
+			if (app) {
+				app.destroy(true, { children: true });
+				app = null;
+			}
+			highway = null;
+		};
+	}, [chart]);
+
+	return <div ref={hostRef} style={{ width: "100%", height: "100%" }} />;
+}

@@ -9,7 +9,7 @@ export class Clock {
 	constructor(now: () => number, startMs = 0) {
 		this.now = now;
 		this.baseMs = startMs;
-		this.baseReal = this.now();
+		this.baseReal = 0;
 	}
 
 	/** Current playback time in ms. */
