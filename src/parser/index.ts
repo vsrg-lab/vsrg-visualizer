@@ -1,3 +1,4 @@
+import { parseOsu } from "./osu";
 import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
 import type { LoadResult, SourceFormat } from "../model/types";
@@ -34,7 +35,13 @@ export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
 	const format = detectFormat(text, fileName);
 
 	if (format === null)
-		return { ok: false, errors: [{ line: 1, message: `unrecognized chart format for "${fileName}"` }] };
+		return {
+			ok: false,
+			errors: [{
+				line: 1,
+				message: `unrecognized chart format for "${fileName}"`
+			}]
+		};
 
 	if (format === "urc") {
 		const parsed = parseUrc(text);
@@ -42,8 +49,37 @@ export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
 			return { ok: false, errors: parsed.errors };
 
 		const compiled = compileChart(parsed.source);
-		return { ok: true, set: { sourceFormat: "urc", charts: [compiled.chart], warnings: compiled.warnings } };
+		return {
+			ok: true,
+			set: {
+				sourceFormat: "urc",
+				charts: [compiled.chart],
+				warnings: compiled.warnings
+			}
+		};
 	}
 
-	return { ok: false, errors: [{ line: 1, message: `no parser for format "${format}" yet` }] };
+	if (format === "osu") {
+		const parsed = parseOsu(text);
+		if (!parsed.ok)
+			return { ok: false, errors: parsed.errors };
+
+		const compiled = compileChart(parsed.source);
+		return {
+			ok: true,
+			set: {
+				sourceFormat: "osu",
+				charts: [compiled.chart],
+				warnings: [...parsed.warnings, ...compiled.warnings]
+			}
+		};
+	}
+
+	return {
+		ok: false,
+		errors: [{
+			line: 1,
+			message: `no parser for format "${format}" yet`
+		}]
+	};
 }
