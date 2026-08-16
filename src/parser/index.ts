@@ -1,7 +1,9 @@
 import { parseOsu } from "./osu";
+import { parseQua } from "./qua";
 import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
-import type { LoadResult, SourceFormat } from "../model/types";
+import type { SourceChart } from "../model/source";
+import type { LoadResult, ParseError, SourceFormat, Warning } from "../model/types";
 
 /** Decodes as UTF-8 and drops a byte order mark if present. */
 function decodeUtf8(bytes: ArrayBuffer): string {
@@ -25,8 +27,29 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 		return "urc";
 	if (head.includes("osu file format v"))
 		return "osu";
+	if (/^(AudioFile|Mode|MapId|Title):/m.test(head))
+		return "qua";
 
 	return null;
+}
+
+type Parsed =
+	| { ok: true; source: SourceChart; warnings?: Warning[] }
+	| { ok: false; errors: ParseError[] };
+
+function toLoadResult(sourceFormat: SourceFormat, parsed: Parsed): LoadResult {
+	if (!parsed.ok)
+		return { ok: false, errors: parsed.errors };
+
+	const compiled = compileChart(parsed.source);
+	return {
+		ok: true,
+		set: {
+			sourceFormat,
+			charts: [compiled.chart],
+			warnings: [...(parsed.warnings ?? []), ...compiled.warnings]
+		}
+	};
 }
 
 /** Loads one chart file: decode, detect format, parse, compile. */
@@ -43,43 +66,9 @@ export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
 			}]
 		};
 
-	if (format === "urc") {
-		const parsed = parseUrc(text);
-		if (!parsed.ok)
-			return { ok: false, errors: parsed.errors };
-
-		const compiled = compileChart(parsed.source);
-		return {
-			ok: true,
-			set: {
-				sourceFormat: "urc",
-				charts: [compiled.chart],
-				warnings: compiled.warnings
-			}
-		};
-	}
-
-	if (format === "osu") {
-		const parsed = parseOsu(text);
-		if (!parsed.ok)
-			return { ok: false, errors: parsed.errors };
-
-		const compiled = compileChart(parsed.source);
-		return {
-			ok: true,
-			set: {
-				sourceFormat: "osu",
-				charts: [compiled.chart],
-				warnings: [...parsed.warnings, ...compiled.warnings]
-			}
-		};
-	}
-
-	return {
-		ok: false,
-		errors: [{
-			line: 1,
-			message: `no parser for format "${format}" yet`
-		}]
-	};
+	if (format === "urc")
+		return toLoadResult("urc", parseUrc(text));
+	if (format === "osu")
+		return toLoadResult("osu", parseOsu(text));
+	return toLoadResult("qua", parseQua(text));
 }

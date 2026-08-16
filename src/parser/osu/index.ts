@@ -12,7 +12,7 @@ const PLAYFIELD_WIDTH = 512;
 const HOLD_FLAG = 128;
 const DOUBLE_STAGE_THRESHOLD = 10;
 
-function number(values: Map<string, string>, key: string, fallback: number): number {
+function num(values: Map<string, string>, key: string, fallback: number): number {
 	const raw = values.get(key);
 	if (raw === undefined)
 		return fallback;
@@ -147,7 +147,7 @@ export function parseOsu(text: string): OsuParseResult {
 	const sections = splitOsuSections(text);
 
 	const general = readKeyValues(sections.get("General") ?? []);
-	if (number(general, "Mode", 0) !== 3)
+	if (num(general, "Mode", 0) !== 3)
 		return {
 			ok: false,
 			errors: [{
@@ -157,7 +157,7 @@ export function parseOsu(text: string): OsuParseResult {
 		};
 
 	const difficulty = readKeyValues(sections.get("Difficulty") ?? []);
-	const totalKeys = Math.round(number(difficulty, "CircleSize", 0));
+	const totalKeys = Math.round(num(difficulty, "CircleSize", 0));
 	if (!(totalKeys >= 1))
 		return {
 			ok: false,
@@ -176,7 +176,7 @@ export function parseOsu(text: string): OsuParseResult {
 		version: meta.get("Version") ?? ""
 	};
 
-	const layout = buildLayout(totalKeys, number(general, "SpecialStyle", 0) === 1, warnings);
+	const layout = buildLayout(totalKeys, num(general, "SpecialStyle", 0) === 1, warnings);
 	const events = parseTimingPoints(sections.get("TimingPoints") ?? [], warnings);
 	const notes = parseHitObjects(sections.get("HitObjects") ?? [], totalKeys, warnings);
 
