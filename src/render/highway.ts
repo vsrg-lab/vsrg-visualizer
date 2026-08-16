@@ -86,7 +86,7 @@ export class Highway {
 			const yStart = screenY(this.scroll.positionAt(n.startMs), head, pxPerUnit, this.opts.receptorY);
 			const yEnd = screenY(this.scroll.positionAt(n.endMs), head, pxPerUnit, this.opts.receptorY);
 			const top = Math.min(yStart, yEnd);
-			const h = Math.abs(yStart - yEnd) + NOTE_HEIGHT;
+			const h = Math.abs(yStart - yEnd);
 
 			if (top + h < 0 || top > this.opts.height)
 				return;

@@ -42,7 +42,7 @@ function buildEvents(document: QuaRow, warnings: Warning[]): TimingEvent[] {
 
 	for (const point of points) {
 		const at = num(point.StartTime, 0);
-		events.push({ kind: "bpm", at, bpm: num(point.BPM, 120) });
+		events.push({ kind: "bpm", at, bpm: num(point.Bpm, 120) });
 		events.push({ kind: "meter", at, beats: num(point.Signature, 4), noteValue: 4 });
 	}
 

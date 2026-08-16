@@ -92,15 +92,14 @@ describe("compileChart - ms axis", () => {
 });
 
 describe("compileChart - normalization", () => {
-	it("moves the first point to t=0 when the chart starts later", () => {
+	it("keeps the real start time when the chart's first point isn't at t=0", () => {
 		const { chart } = compileChart(source({
 			events: [{ kind: "bpm", at: 3000, bpm: 150 }],
 			notes: [tap(3000)]
 		}));
 
-		// the copy at 0 says the same thing as the original at 3000, so merging leaves one point
 		expect(chart.timing).toEqual([
-			{ timeMs: 0, bpm: 150, meter: { beats: 4, noteValue: 4 }, multiplier: 1 }
+			{ timeMs: 3000, bpm: 150, meter: { beats: 4, noteValue: 4 }, multiplier: 1 }
 		]);
 	});
 

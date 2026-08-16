@@ -155,9 +155,6 @@ function normalizeTiming(timing: TimingPoint[]): TimingPoint[] {
 	if (deduped.length === 0)
 		return [{ timeMs: 0, bpm: DEFAULT_BPM, meter: DEFAULT_METER, multiplier: 1 }];
 
-	if (deduped[0].timeMs > 0)
-		deduped.unshift({ ...deduped[0], timeMs: 0 });
-
 	const merged: TimingPoint[] = [deduped[0]];
 	for (let i = 1; i < deduped.length; i++)
 		if (!samePoint(merged[merged.length - 1], deduped[i]))
