@@ -139,3 +139,113 @@ describe("compileChart - normalization", () => {
 		expect(chart.timing[0]).toEqual({ timeMs: 0, bpm: 200, meter: { beats: 4, noteValue: 4 }, multiplier: 1 });
 	});
 });
+
+describe("compileChart - beat axis", () => {
+	it("integrates bpm to turn beats into milliseconds", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [{ kind: "bpm", at: 0, bpm: 120 }, { kind: "bpm", at: 4, bpm: 240 }],
+			notes: [tap(0), tap(4), tap(8)]
+		}));
+
+		// 120bpm -> 500ms/beat, so beat 4 is at 2000ms; 240bpm -> 250ms/beat, beat 8 at 3000ms
+		expect(chart.timing.map(p => p.timeMs)).toEqual([0, 2000]);
+		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 2000, 3000]);
+	});
+
+	it("converts hold ends through the same beat map", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [{ kind: "bpm", at: 0, bpm: 120 }],
+			notes: [{ kind: "hold", lane: 0, at: 2, end: 6 }]
+		}));
+
+		expect(chart.notes).toEqual([{ kind: "hold", lane: 0, startMs: 1000, endMs: 3000 }]);
+	});
+});
+
+describe("compileChart - stops", () => {
+	it("inserts a zero-multiplier span for a stop stated in milliseconds", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "stop", at: 2, duration: { unit: "ms", value: 300 } }
+			],
+			notes: [tap(0), tap(2), tap(4)]
+		}));
+
+		expect(chart.timing).toEqual([
+			{ timeMs: 0, bpm: 120, meter: { beats: 4, noteValue: 4 }, multiplier: 1 },
+			{ timeMs: 1000, bpm: 120, meter: { beats: 4, noteValue: 4 }, multiplier: 0 },
+			{ timeMs: 1300, bpm: 120, meter: { beats: 4, noteValue: 4 }, multiplier: 1 }
+		]);
+		// a note on the stop's own beat lands at the start of the pause
+		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 1000, 2300]);
+	});
+
+	it("converts a beat-stated stop using the bpm in force at that point", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "bpm", at: 2, bpm: 240 },
+				{ kind: "stop", at: 2, duration: { unit: "beats", value: 1 } }
+			],
+			notes: [tap(0), tap(4)]
+		}));
+
+		// bpm applies before stop at the same position, so 1 beat = 250ms
+		expect(chart.timing.map(p => p.timeMs)).toEqual([0, 1000, 1250]);
+		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 1750]);
+	});
+
+	it("ignores stops on a millisecond-axis chart and warns", () => {
+		const { chart, warnings } = compileChart(source({
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "stop", at: 1000, duration: { unit: "ms", value: 500 } }
+			],
+			notes: [tap(0), tap(2000)]
+		}));
+
+		expect(chart.timing.every(p => p.multiplier !== 0)).toBe(true);
+		expect(warnings.some(w => w.code === "unsupported-event-on-ms-axis")).toBe(true);
+	});
+});
+
+describe("compileChart - warps", () => {
+	it("removes warped beats from the timeline and fakes the notes inside", () => {
+		const { chart, warnings } = compileChart(source({
+			timeAxis: "beat",
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "warp", at: 2, lengthBeats: 2 }
+			],
+			notes: [tap(0), tap(3), tap(4)]
+		}));
+
+		// beats 2..4 elapse in zero time, so beat 4 sits where beat 2 did
+		expect(chart.notes).toEqual([
+			{ kind: "tap", timeMs: 0, lane: 0 },
+			{ kind: "fake", timeMs: 1000, lane: 0 },
+			{ kind: "tap", timeMs: 1000, lane: 0 }
+		]);
+		expect(warnings.some(w => w.code === "warp-notes-faked")).toBe(true);
+	});
+
+	it("merges overlapping warps", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "warp", at: 2, lengthBeats: 2 },
+				{ kind: "warp", at: 3, lengthBeats: 2 }
+			],
+			notes: [tap(0), tap(6)]
+		}));
+
+		// warped span is beats 2..5, so beat 6 is one beat past the warp: 1000 + 500
+		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 1500]);
+	});
+});

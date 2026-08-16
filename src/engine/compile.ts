@@ -1,4 +1,4 @@
-import type { SourceChart, TimingEvent } from "../model/source";
+import type { Duration, SourceChart, TimingEvent } from "../model/source";
 import type { Chart, Meter, Note, TimingPoint, Warning } from "../model/types";
 
 /** Applied order for events sharing a position. Fixing it keeps compilation deterministic. */
@@ -12,6 +12,10 @@ type RawPoint = { timeMs: number; bpm: number; meter: Meter; sv: number; stopped
 
 function sortEvents(events: TimingEvent[]): TimingEvent[] {
 	return [...events].sort((a, b) => a.at - b.at || EVENT_ORDER[a.kind] - EVENT_ORDER[b.kind]);
+}
+
+function durationToMs(duration: Duration, bpm: number): number {
+	return duration.unit === "ms" ? duration.value : duration.value * 60000 / bpm;
 }
 
 /** Duration-weighted most common bpm; ties go to whichever appeared first. */
@@ -43,6 +47,85 @@ function computeBaseBpm(points: RawPoint[], endMs: number): number {
 
 function noteEnd(note: Note): number {
 	return note.kind === "hold" ? note.endMs : note.timeMs;
+}
+
+/** A half-open span of beats that elapses in zero time. */
+type Warp = { start: number; end: number };
+
+function collectWarps(events: TimingEvent[]): Warp[] {
+	const raw: Warp[] = [];
+	for (const event of events)
+		if (event.kind === "warp" && event.lengthBeats > 0)
+			raw.push({ start: event.at, end: event.at + event.lengthBeats });
+
+	raw.sort((a, b) => a.start - b.start);
+
+	const merged: Warp[] = [];
+	for (const warp of raw) {
+		const last = merged[merged.length - 1];
+		if (last && warp.start <= last.end)
+			last.end = Math.max(last.end, warp.end);
+		else
+			merged.push({ ...warp });
+	}
+
+	return merged;
+}
+
+/** Beats between two positions that actually take time, i.e. excluding warped spans. */
+function livingBeats(warps: Warp[], from: number, to: number): number {
+	let length = to - from;
+	for (const warp of warps) {
+		const lo = Math.max(from, warp.start);
+		const hi = Math.min(to, warp.end);
+		if (hi > lo)
+			length -= hi - lo;
+	}
+
+	return Math.max(0, length);
+}
+
+function warpAt(warps: Warp[], at: number): Warp | null {
+	for (const warp of warps)
+		if (at >= warp.start && at < warp.end)
+			return warp;
+
+	return null;
+}
+
+/** Maps a source-axis position onto milliseconds. timeMsIn is before any stop at that position. */
+type Mark = { at: number; timeMsIn: number; timeMsOut: number; bpm: number };
+
+function markIndexAt(marks: Mark[], at: number): number {
+	let lo = 0;
+	let hi = marks.length - 1;
+	let found = -1;
+
+	while (lo <= hi) {
+		const mid = (lo + hi) >> 1;
+		if (marks[mid].at <= at) {
+			found = mid;
+			lo = mid + 1;
+		} else
+			hi = mid - 1;
+	}
+
+	return found;
+}
+
+function beatToMs(marks: Mark[], warps: Warp[], at: number): number {
+	if (marks.length === 0)
+		return 0;
+
+	const index = markIndexAt(marks, at);
+	if (index < 0)
+		return marks[0].timeMsIn - (marks[0].at - at) * 60000 / marks[0].bpm;
+
+	const mark = marks[index];
+	if (mark.at === at)
+		return mark.timeMsIn;
+
+	return mark.timeMsOut + livingBeats(warps, mark.at, at) * 60000 / mark.bpm;
 }
 
 function shiftNote(note: Note, shift: number): Note {
@@ -88,15 +171,38 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 	const warnings: Warning[] = [];
 	const sorted = sortEvents(source.events);
 
+	if (source.timeAxis === "ms")
+		for (const event of sorted)
+			if (event.kind === "stop" || event.kind === "warp")
+				warnings.push({
+					code: "unsupported-event-on-ms-axis",
+					message: `${event.kind} event at ${event.at} ignored on a millisecond-axis chart`
+				});
+
 	const points: RawPoint[] = [];
+	const marks: Mark[] = [];
+	const beatAxis = source.timeAxis === "beat";
+	const warps = beatAxis ? collectWarps(sorted) : [];
+
 	let bpm = DEFAULT_BPM;
 	let meter = DEFAULT_METER;
 	let sv = 1;
-	let i = 0;
+	let at = 0;
+	let timeMs = 0;
 
+	let i = 0;
 	while (i < sorted.length) {
 		const groupAt = sorted[i].at;
 
+		if (beatAxis) {
+			if (groupAt > at)
+				timeMs += livingBeats(warps, at, groupAt) * 60000 / bpm;
+
+			at = groupAt;
+		} else
+			timeMs = groupAt;
+
+		let stopMs = 0;
 		while (i < sorted.length && sorted[i].at === groupAt) {
 			const event = sorted[i];
 			if (event.kind === "bpm")
@@ -105,16 +211,55 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 				meter = { beats: event.beats, noteValue: event.noteValue };
 			else if (event.kind === "sv")
 				sv = event.multiplier;
+			else if (event.kind === "stop" && beatAxis)
+				stopMs += durationToMs(event.duration, bpm);
 
 			i++;
 		}
 
-		points.push({ timeMs: groupAt, bpm, meter, sv, stopped: false });
+		const timeMsIn = timeMs;
+
+		if (stopMs > 0) {
+			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: true });
+			timeMs = timeMsIn + stopMs;
+			points.push({ timeMs, bpm, meter, sv, stopped: false });
+		} else
+			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: false });
+
+		marks.push({ at: groupAt, timeMsIn, timeMsOut: timeMs, bpm });
 	}
 
-	const notes: Note[] = source.notes.map(note => note.kind === "hold"
-		? { kind: "hold", lane: note.lane, startMs: Math.round(note.at), endMs: Math.round(note.end) }
-		: { kind: note.kind, lane: note.lane, timeMs: Math.round(note.at) });
+	const toMs = (position: number): number => {
+		if (!beatAxis)
+			return position;
+
+		const warp = warpAt(warps, position);
+		return beatToMs(marks, warps, warp ? warp.start : position);
+	};
+
+	let warpedNotes = 0;
+	const notes: Note[] = source.notes.map(note => {
+		const inWarp = beatAxis && warpAt(warps, note.at) !== null;
+		if (inWarp)
+			warpedNotes++;
+
+		if (note.kind === "hold") {
+			const startMs = Math.round(toMs(note.at));
+			if (inWarp)
+				return { kind: "fake", timeMs: startMs, lane: note.lane };
+
+			return { kind: "hold", lane: note.lane, startMs, endMs: Math.round(toMs(note.end)) };
+		}
+
+		const timeMs = Math.round(toMs(note.at));
+		return { kind: inWarp ? "fake" : note.kind, timeMs, lane: note.lane };
+	});
+
+	if (warpedNotes > 0)
+		warnings.push({
+			code: "warp-notes-faked",
+			message: `${warpedNotes} note(s) inside a warp became fake`
+		});
 
 	notes.sort((a, b) => (a.kind === "hold" ? a.startMs : a.timeMs) - (b.kind === "hold" ? b.startMs : b.timeMs));
 
@@ -142,7 +287,10 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 
 	if (minMs < 0) {
 		const shift = -minMs;
-		warnings.push({ code: "shifted-to-zero", message: `timeline shifted by ${shift}ms so it starts at 0` });
+		warnings.push({
+			code: "shifted-to-zero",
+			message: `timeline shifted by ${shift}ms so it starts at 0`
+		});
 		shiftedTiming = timing.map(point => ({ ...point, timeMs: point.timeMs + shift }));
 		shiftedNotes = notes.map(note => shiftNote(note, shift));
 	}
