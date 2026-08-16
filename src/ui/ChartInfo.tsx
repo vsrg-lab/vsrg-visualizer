@@ -12,9 +12,10 @@ export function ChartInfo({ chart, timeMs }: ChartInfoProps) {
 
 	return (
 		<div className="flex items-center gap-4 px-2 py-1 text-sm text-base-content/80">
+			<span className="badge badge-sm badge-ghost">{chart.metadata.original}</span>
 			<span>{chart.metadata.title} - {chart.metadata.artist} [{chart.metadata.version}]</span>
-			<span className="ml-auto tabular-nums">BPM {timing.bpm}</span>
-			<span className="tabular-nums">{timing.meter.beats}/{timing.meter.noteValue}</span>
+			<span className="ml-auto tabular-nums">{chart.layout.totalKeys}K</span>
+			<span className="tabular-nums">BPM {timing.bpm}</span>
 		</div>
 	);
 }

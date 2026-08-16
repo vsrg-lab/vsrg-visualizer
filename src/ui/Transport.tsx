@@ -1,17 +1,21 @@
+import type { ScrollMode } from "../engine/flatten";
+
 type TransportProps = {
 	playing: boolean;
 	timeMs: number;
 	durationMs: number;
 	rate: number;
+	scrollMode: ScrollMode;
 
 	onPlayPause: () => void;
 	onStop: () => void;
 	onSeek: (timeMs: number) => void;
 	onRate: (rate: number) => void;
+	onScrollMode: (mode: ScrollMode) => void;
 };
 
 /** Presentational playback controls; all state lives in the parent. */
-export function Transport({ playing, timeMs, durationMs, rate, onPlayPause, onStop, onSeek, onRate }: TransportProps) {
+export function Transport({ playing, timeMs, durationMs, rate, scrollMode, onPlayPause, onStop, onSeek, onRate, onScrollMode }: TransportProps) {
 	return (
 		<div className="flex items-center gap-3 p-2 bg-base-200">
 			<button className="btn btn-sm" onClick={onPlayPause}>{playing ? "Pause" : "Play"}</button>
@@ -34,6 +38,20 @@ export function Transport({ playing, timeMs, durationMs, rate, onPlayPause, onSt
 					<option value={2}>2x</option>
 				</select>
 			</label>
+			<div className="join">
+				<button
+					className={`btn btn-xs join-item ${scrollMode === "original" ? "btn-active" : ""}`}
+					onClick={() => onScrollMode("original")}
+				>
+					Original
+				</button>
+				<button
+					className={`btn btn-xs join-item ${scrollMode === "noSv" ? "btn-active" : ""}`}
+					onClick={() => onScrollMode("noSv")}
+				>
+					No SV
+				</button>
+			</div>
 		</div>
 	);
 }

@@ -2,11 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Clock } from "./engine/clock";
 import { chartEndMs } from "./engine/duration";
-import type { Chart } from "./model/types";
+import { flattenScroll, type ScrollMode } from "./engine/flatten";
+import type { ChartSet, ParseError } from "./model/types";
+import { loadChart } from "./parser";
 import { ChartInfo } from "./ui/ChartInfo";
+import { ChartSelect } from "./ui/ChartSelect";
 import { FileDrop } from "./ui/FileDrop";
 import { HighwayCanvas } from "./ui/HighwayCanvas";
 import { Transport } from "./ui/Transport";
+import { Warnings } from "./ui/Warnings";
 
 const PX_PER_UNIT = 0.4;
 
@@ -14,15 +18,42 @@ function now(): number {
 	return performance.now();
 }
 
-/** App: owns chart/playback state and wires FileDrop, ChartInfo, Transport, and HighwayCanvas together. */
+/** App: owns chart/playback state and wires the loader, panels and highway together. */
 export function App() {
-	const [chart, setChart] = useState<Chart | null>(null);
+	const [set, setSet] = useState<ChartSet | null>(null);
+	const [errors, setErrors] = useState<ParseError[]>([]);
+	const [selected, setSelected] = useState<number>(0);
+	const [scrollMode, setScrollMode] = useState<ScrollMode>("original");
 	const [playing, setPlaying] = useState<boolean>(false);
 	const [timeMs, setTimeMs] = useState<number>(0);
 	const [rate, setRate] = useState<number>(1);
 
 	const clock = useMemo(() => new Clock(now), []);
 	const rafRef = useRef<number>(0);
+
+	const chart = useMemo(
+		() => set ? flattenScroll(set.charts[selected], scrollMode) : null,
+		[set, selected, scrollMode]
+	);
+
+	async function handleFile(file: File): Promise<void> {
+		const bytes = await file.arrayBuffer();
+		const result = loadChart(bytes, file.name);
+
+		clock.pause();
+		clock.seek(0);
+		setPlaying(false);
+
+		if (result.ok) {
+			setErrors([]);
+			setSet(result.set);
+			setSelected(0);
+			return;
+		}
+
+		setSet(null);
+		setErrors(result.errors);
+	}
 
 	useEffect(() => {
 		const tick = () => {
@@ -49,20 +80,24 @@ export function App() {
 	return (
 		<div className="flex flex-col h-screen bg-base-100 text-base-content font-sans">
 			<div className="p-2">
-				<FileDrop onChart={c => {
-					setChart(c);
-					clock.seek(0);
-					setPlaying(false);
-				}} />
+				<FileDrop onFile={f => void handleFile(f)} />
+				{errors.length > 0 && (
+					<ul className="text-error text-sm mt-2">
+						{errors.map((e, i) => <li key={i}>line {e.line}: {e.message}</li>)}
+					</ul>
+				)}
 			</div>
-			{chart && (
+			{set && chart && (
 				<>
+					<ChartSelect charts={set.charts} selected={selected} onSelect={setSelected} />
+					<Warnings warnings={set.warnings} />
 					<ChartInfo chart={chart} timeMs={timeMs} />
 					<Transport
 						playing={playing}
 						timeMs={timeMs}
 						durationMs={duration}
 						rate={rate}
+						scrollMode={scrollMode}
 						onPlayPause={() => {
 							if (playing)
 								clock.pause();
@@ -80,6 +115,7 @@ export function App() {
 							clock.setRate(r);
 							setRate(r);
 						}}
+						onScrollMode={setScrollMode}
 					/>
 					<div className="flex-1 min-h-0">
 						<HighwayCanvas chart={chart} clock={clock} pxPerUnit={PX_PER_UNIT} />
