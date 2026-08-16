@@ -112,7 +112,7 @@ describe("parseOsu", () => {
 			return;
 
 		expect(result.source.layout.stages).toBe(2);
-		expect(result.warnings.some(w => w.code === "stages-inferred")).toBe(true);
+		expect(result.warnings?.some(w => w.code === "stages-inferred")).toBe(true);
 	});
 
 	it("rejects a file that is not osu!mania", () => {

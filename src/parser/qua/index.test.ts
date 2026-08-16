@@ -96,7 +96,7 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.warnings.some(w => w.code === "timing-groups-ignored")).toBe(true);
+		expect(result.warnings?.some(w => w.code === "timing-groups-ignored")).toBe(true);
 	});
 
 	it("fails on unparseable yaml", () => {

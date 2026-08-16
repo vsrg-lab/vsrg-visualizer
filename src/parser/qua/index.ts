@@ -1,12 +1,7 @@
 import { parse } from "yaml";
 
-import type { SourceChart, SourceNote, TimingEvent } from "../../model/source";
-import type { Layout, Metadata, ParseError, Warning } from "../../model/types";
-
-/** Outcome of parsing a .qua document. */
-export type QuaParseResult =
-	| { ok: true; source: SourceChart; warnings: Warning[] }
-	| { ok: false; errors: ParseError[] };
+import type { ParseResult, SourceChart, SourceNote, TimingEvent } from "../../model/source";
+import type { Layout, Metadata, Warning } from "../../model/types";
 
 type QuaRow = Record<string, unknown>;
 
@@ -89,7 +84,7 @@ function buildNotes(document: QuaRow, totalKeys: number, warnings: Warning[]): S
 }
 
 /** Parses a Quaver .qua document (YAML). */
-export function parseQua(source: string): QuaParseResult {
+export function parseQua(source: string): ParseResult {
 	let document: unknown;
 	try {
 		document = parse(source);

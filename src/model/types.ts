@@ -1,7 +1,7 @@
 /** A parse failure tied to a 1-based source line. */
 export type ParseError = { line: number; message: string };
 
-/** A non-fatal probelm found while parsing or compiling. Collected, never thrown. */
+/** A non-fatal problem found while parsing or compiling. Collected, never thrown. */
 export type Warning = { line?: number; code: string;  message: string };
 
 /** Kind of a note event. Holds carry a start/end pair; the rest are point events. */
@@ -21,19 +21,15 @@ export type TimingPoint = { timeMs: number; bpm: number; meter: Meter; multiplie
 /** Song/chart identity. */
 export type Metadata = { original: string; title: string; artist: string; creator: string; version: string };
 
-/** Optional judgment windows (ms) and matching score rates (%). */
-export type Judgment = { windows: number[]; rates: number[] };
-
 /** Key configuration; specialLanes are 0-indexed (e.g. scratch). stages is 2 for double-play charts. */
-export type Layout = { totalKeys: number; normalKeys: number; specialLanes: number[], stages: 1 | 2 };
+export type Layout = { totalKeys: number; normalKeys: number; specialLanes: number[]; stages: 1 | 2 };
 
 /** How scroll speed was derived, so flattenScroll can undo the SV part of the multiplier. */
 export type ScrollInfo = { bpmAffectsScroll: boolean; baseBpm: number };
 
-/** Fully parsed URC chart - the single model the renderer consumes. */
+/** Fully compiled chart - the single model the renderer consumes. */
 export type Chart = {
 	metadata: Metadata;
-	judgment?: Judgment;
 	layout: Layout;
 	timing: TimingPoint[];
 	notes: Note[];
@@ -48,5 +44,5 @@ export type ChartSet = { sourceFormat: SourceFormat; charts: Chart[]; warnings: 
 
 /** Outcome of loading a file: a chart set, or line-sorted fatal errors. */
 export type LoadResult =
-	| { ok: true, set: ChartSet }
-	| { ok: false, errors: ParseError[] };
+	| { ok: true; set: ChartSet }
+	| { ok: false; errors: ParseError[] };

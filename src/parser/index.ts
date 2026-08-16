@@ -2,8 +2,8 @@ import { parseOsu } from "./osu";
 import { parseQua } from "./qua";
 import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
-import type { SourceChart } from "../model/source";
-import type { LoadResult, ParseError, SourceFormat, Warning } from "../model/types";
+import type { ParseResult } from "../model/source";
+import type { LoadResult, SourceFormat } from "../model/types";
 
 /** Decodes as UTF-8 and drops a byte order mark if present. */
 function decodeUtf8(bytes: ArrayBuffer): string {
@@ -33,11 +33,7 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 	return null;
 }
 
-type Parsed =
-	| { ok: true; source: SourceChart; warnings?: Warning[] }
-	| { ok: false; errors: ParseError[] };
-
-function toLoadResult(sourceFormat: SourceFormat, parsed: Parsed): LoadResult {
+function toLoadResult(sourceFormat: SourceFormat, parsed: ParseResult): LoadResult {
 	if (!parsed.ok)
 		return { ok: false, errors: parsed.errors };
 

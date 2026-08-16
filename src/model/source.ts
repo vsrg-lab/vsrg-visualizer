@@ -1,4 +1,4 @@
-import type { Layout, Metadata } from "./types.ts";
+import type { Layout, Metadata, ParseError, Warning } from "./types";
 
 /** A point on the source time axis. Its unit is decided by SourceChart.timeAxis. */
 type At = { at: number };
@@ -29,5 +29,10 @@ export type SourceChart = {
 	timeAxis: "ms" | "beat";
 	bpmAffectsScroll: boolean;
 	events: TimingEvent[];
-	notes: SourceNote[]
+	notes: SourceNote[];
 };
+
+/** Outcome of parsing a chart document into a SourceChart. warnings is omitted by strict formats that produce none. */
+export type ParseResult =
+	| { ok: true; source: SourceChart; warnings?: Warning[] }
+	| { ok: false; errors: ParseError[] };

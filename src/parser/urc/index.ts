@@ -1,12 +1,7 @@
 import { splitSections } from "./sections";
 import type { Line } from "./sections";
-import type { SourceChart, SourceNote, TimingEvent } from "../../model/source";
-import type { Judgment, Layout, Meter, Metadata, Note, ParseError, TimingPoint } from "../../model/types";
-
-/** outcome of parsing a URC document: a Chart, or a line-sorted list of errors. */
-export type UrcParseResult =
-	| { ok: true; source: SourceChart }
-	| { ok: false; errors: ParseError[] };
+import type { ParseResult, SourceChart, SourceNote, TimingEvent } from "../../model/source";
+import type { Layout, Meter, Metadata, Note, ParseError, TimingPoint } from "../../model/types";
 
 type OpenHold = { startMs: number; lineNo: number };
 
@@ -71,7 +66,7 @@ function parseMetadata(entries: Line[]): { value: Metadata | null; errors: Parse
 	};
 }
 
-function parseJudgment(entries: Line[]): { value: Judgment | null; errors: ParseError[] } {
+function parseJudgment(entries: Line[]): { errors: ParseError[] } {
 	const errors: ParseError[] = [];
 
 	let windows: number[] | null = null;
@@ -92,7 +87,7 @@ function parseJudgment(entries: Line[]): { value: Judgment | null; errors: Parse
 
 	if (!windows || !rates) {
 		errors.push({ line: 1, message: "judgment requires both window and Rate lines" });
-		return { value: null, errors };
+		return { errors };
 	}
 
 	if (windows.length !== rates.length)
@@ -111,10 +106,7 @@ function parseJudgment(entries: Line[]): { value: Judgment | null; errors: Parse
 	if (rates.some(r => r < 0 || r > 100))
 		errors.push({ line: 1, message: "judgment rates must be 0-100" });
 
-	if (errors.length > 0)
-		return { value: null, errors };
-
-	return { value: { windows, rates }, errors };
+	return { errors };
 }
 
 function parseLayout(entries: Line[]): { value: Layout | null; errors: ParseError[] } {
@@ -300,7 +292,7 @@ function parseNotes(entries: Line[], totalKeys: number): { value: Note[] | null;
 }
 
 /** Parses a full URC document into a SourceChart, aggregating all section errors. */
-export function parseUrc(text: string): UrcParseResult {
+export function parseUrc(text: string): ParseResult {
 	const split = splitSections(text);
 	if (!split.ok)
 		return { ok: false, errors: sortByLine(split.errors) };
@@ -322,9 +314,8 @@ export function parseUrc(text: string): UrcParseResult {
 	errors.push(...notes.errors);
 
 	const judgmentSection = sections.get("Judgment");
-	const judgment = judgmentSection ? parseJudgment(judgmentSection!.entries) : null;
-	if (judgment)
-		errors.push(...judgment.errors);
+	if (judgmentSection)
+		errors.push(...parseJudgment(judgmentSection.entries).errors);
 
 	if (errors.length > 0 || !metadata.value || !layout.value || !timing.value || !notes.value)
 		return { ok: false, errors: sortByLine(errors) };

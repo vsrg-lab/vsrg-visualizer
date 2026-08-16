@@ -1,11 +1,6 @@
 import { readKeyValues, splitOsuSections } from "./sections";
-import type { SourceChart, SourceNote, TimingEvent } from "../../model/source";
-import type { Layout, Metadata, ParseError, Warning } from "../../model/types";
-
-/** Outcome of parsing an .osu document. */
-export type OsuParseResult =
-	| { ok: true; source: SourceChart; warnings: Warning[] }
-	| { ok: false; errors: ParseError[] };
+import type { ParseResult, SourceChart, SourceNote, TimingEvent } from "../../model/source";
+import type { Layout, Metadata, Warning } from "../../model/types";
 
 /** osu! places mania columns across a fixed 512-unit playfield. */
 const PLAYFIELD_WIDTH = 512;
@@ -133,7 +128,7 @@ function parseHitObjects(lines: string[], totalKeys: number, warnings: Warning[]
 }
 
 /** Parses an osu!mania .osu document. Non-mania modes and missing headers are fatal. */
-export function parseOsu(text: string): OsuParseResult {
+export function parseOsu(text: string): ParseResult {
 	if (!text.trimStart().startsWith("osu file format v"))
 		return {
 			ok: false,
