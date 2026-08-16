@@ -1,5 +1,5 @@
-import type { Line, ParseError } from "./sections";
-import type { Note } from "../../model/types";
+import type { Line } from "./sections";
+import type { Note, ParseError } from "../../model/types";
 
 type OpenHold = { startMs: number; lineNo: number };
 

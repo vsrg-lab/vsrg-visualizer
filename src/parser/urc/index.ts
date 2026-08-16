@@ -2,9 +2,9 @@ import { parseJudgment } from "./judgment";
 import { parseLayout } from "./layout";
 import { parseMetadata } from "./metadata";
 import { parseNotes } from "./notes";
-import { type ParseError, splitSections } from "./sections";
+import { splitSections } from "./sections";
 import { parseTiming } from "./timing";
-import type { Chart } from "../../model/types";
+import type { Chart, ParseError } from "../../model/types";
 
 /** outcome of parsing a URC document: a Chart, or a line-sorted list of errors. */
 export type ParseResult = { ok: true; chart: Chart } | { ok: false; errors: ParseError[] };

@@ -1,5 +1,4 @@
-/** A parse failure tied to a 1-bases source line. */
-export type ParseError = { line: number; message: string };
+import type { ParseError } from "../../model/types";
 
 /** A non-comment, non-blank source line with its 1-based number. */
 export type Line = { lineNo: number; text: string };
@@ -63,10 +62,10 @@ export function splitSections(text: string): SplitResult {
 	if (version === "")
 		errors.push({ line: 1, message: "missing @URC version header" });
 
-	for (const name of REQUIRED_ORDER) 
+	for (const name of REQUIRED_ORDER)
 		if (!sections.has(name))
 			errors.push({ line: 1, message: `missing required section @${name}` });
-	
+
 
 	const seen = order.filter(n => (REQUIRED_ORDER as readonly string[]).includes(n));
 	const expected = REQUIRED_ORDER.filter(n => seen.includes(n));

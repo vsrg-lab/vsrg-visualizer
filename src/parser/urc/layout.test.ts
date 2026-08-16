@@ -8,12 +8,12 @@ describe("parseLayout", () => {
 	it("parses a single-number layout", () => {
 		const r = parseLayout(lines("Type: 4", "Special: None"));
 		expect(r.errors).toEqual([]);
-		expect(r.value).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [] });
+		expect(r.value).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
 	});
 
 	it("parses a hybrid layout with special lanes", () => {
 		const r = parseLayout(lines("Type: 7+1", "Special: 7"));
-		expect(r.value).toEqual({ totalKeys: 8, normalKeys: 7, specialLanes: [7] });
+		expect(r.value).toEqual({ totalKeys: 8, normalKeys: 7, specialLanes: [7], stages: 1 });
 	});
 
 	it("errors when a special index is out of range", () => {

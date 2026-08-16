@@ -1,5 +1,5 @@
-import type { Line, ParseError } from "./sections.ts";
-import type { Layout } from "../../model/types.ts";
+import type { Line } from "./sections.ts";
+import type { Layout, ParseError } from "../../model/types.ts";
 
 /** Parses @Layout (Type + Special) into total/normal key counts and 0-indexed special lanes. */
 export function parseLayout(entries: Line[]): { value: Layout | null; errors: ParseError[] } {
@@ -57,5 +57,5 @@ export function parseLayout(entries: Line[]): { value: Layout | null; errors: Pa
 	if (errors.length > 0)
 		return { value: null, errors };
 
-	return { value: { totalKeys, normalKeys, specialLanes }, errors };
+	return { value: { totalKeys, normalKeys, specialLanes, stages: 1 }, errors };
 }

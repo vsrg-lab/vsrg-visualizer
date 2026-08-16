@@ -1,5 +1,5 @@
-import type { Line, ParseError } from "./sections";
-import type { Metadata } from "../../model/types.ts";
+import type { Line } from "./sections";
+import type { Metadata, ParseError } from "../../model/types.ts";
 
 const REQUIRED = ["Original", "Title", "Artist", "Creator", "Version"] as const;
 

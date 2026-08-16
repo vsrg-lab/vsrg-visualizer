@@ -1,3 +1,9 @@
+/** A parse failure tied to a 1-based source line. */
+export type ParseError = { line: number; message: string };
+
+/** A non-fatal probelm found while parsing or compiling. Collected, never thrown. */
+export type Warning = { line?: number; code: string;  message: string };
+
 /** Kind of a note event. Holds carry a start/end pair; the rest are point events. */
 export type NoteKind = "tap" | "mine" | "fake" | "hold";
 
@@ -18,8 +24,11 @@ export type Metadata = { original: string; title: string; artist: string; creato
 /** Optional judgment windows (ms) and matching score rates (%). */
 export type Judgment = { windows: number[]; rates: number[] };
 
-/** Key configuration; specialLanes are 0-indexed (e.g. scratch). */
-export type Layout = { totalKeys: number; normalKeys: number; specialLanes: number[] };
+/** Key configuration; specialLanes are 0-indexed (e.g. scratch). stages is 2 for double-play charts. */
+export type Layout = { totalKeys: number; normalKeys: number; specialLanes: number[], stages: 1 | 2 };
+
+/** How scroll speed was derived, so flattenScroll can undo the SV part of the multiplier. */
+export type ScrollInfo = { bpmAffectsScroll: boolean; baseBpm: number };
 
 /** Fully parsed URC chart - the single model the renderer consumes. */
 export type Chart = {
@@ -28,4 +37,5 @@ export type Chart = {
 	layout: Layout;
 	timing: TimingPoint[];
 	notes: Note[];
+	scroll: ScrollInfo;
 };

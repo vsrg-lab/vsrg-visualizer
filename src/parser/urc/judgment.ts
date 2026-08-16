@@ -1,5 +1,5 @@
-import type { Line, ParseError } from "./sections.ts";
-import type { Judgment } from "../../model/types.ts";
+import type { Line } from "./sections.ts";
+import type { Judgment, ParseError } from "../../model/types.ts";
 
 function nums(csv: string): number[] {
 	return csv.split(",").map(s => Number(s.trim()));

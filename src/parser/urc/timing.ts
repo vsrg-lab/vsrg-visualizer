@@ -1,5 +1,5 @@
-import type { Line, ParseError } from "./sections.ts";
-import type { Meter, TimingPoint } from "../../model/types.ts";
+import type { Line } from "./sections.ts";
+import type { Meter, TimingPoint, ParseError } from "../../model/types.ts";
 
 function parseMeter(text: string): Meter | null {
 	const [b, n] = text.split("/").map(s => Number(s.trim()));
