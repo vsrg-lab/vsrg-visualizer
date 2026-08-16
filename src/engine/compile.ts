@@ -45,6 +45,44 @@ function noteEnd(note: Note): number {
 	return note.kind === "hold" ? note.endMs : note.timeMs;
 }
 
+function shiftNote(note: Note, shift: number): Note {
+	return note.kind === "hold"
+		? { ...note, startMs: note.startMs + shift, endMs: note.endMs + shift }
+		: { ...note, timeMs: note.timeMs + shift };
+}
+
+function samePoint(a: TimingPoint, b: TimingPoint): boolean {
+	return a.bpm === b.bpm
+		&& a.meter.beats === b.meter.beats
+		&& a.meter.noteValue === b.meter.noteValue
+		&& a.multiplier === b.multiplier;
+}
+
+/** Drops same-millisecond duplicates (last wins), guarantees a point at 0, then merges repeats. */
+function normalizeTiming(timing: TimingPoint[]): TimingPoint[] {
+	const deduped: TimingPoint[] = [];
+
+	for (const point of timing)
+		if (deduped.length > 0 && deduped[deduped.length - 1].timeMs === point.timeMs)
+			deduped[deduped.length - 1] = point;
+		else
+			deduped.push(point);
+
+
+	if (deduped.length === 0)
+		return [{ timeMs: 0, bpm: DEFAULT_BPM, meter: DEFAULT_METER, multiplier: 1 }];
+
+	if (deduped[0].timeMs > 0)
+		deduped.unshift({ ...deduped[0], timeMs: 0 });
+
+	const merged: TimingPoint[] = [deduped[0]];
+	for (let i = 1; i < deduped.length; i++)
+		if (!samePoint(merged[merged.length - 1], deduped[i]))
+			merged.push(deduped[i]);
+
+	return merged;
+}
+
 /** Compiles a source chart onto the millisecond axis the engine and renderer consume. */
 export function compileChart(source: SourceChart): { chart: Chart; warnings: Warning[] } {
 	const warnings: Warning[] = [];
@@ -92,11 +130,28 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 		multiplier: point.stopped ? 0 : (source.bpmAffectsScroll ? point.bpm / baseBpm : 1) * point.sv
 	}));
 
+	let shiftedTiming = timing;
+	let shiftedNotes = notes;
+
+	let minMs = 0;
+	for (const point of timing)
+		minMs = Math.min(minMs, point.timeMs);
+
+	for (const note of notes)
+		minMs = Math.min(minMs, note.kind === "hold" ? note.startMs : note.timeMs);
+
+	if (minMs < 0) {
+		const shift = -minMs;
+		warnings.push({ code: "shifted-to-zero", message: `timeline shifted by ${shift}ms so it starts at 0` });
+		shiftedTiming = timing.map(point => ({ ...point, timeMs: point.timeMs + shift }));
+		shiftedNotes = notes.map(note => shiftNote(note, shift));
+	}
+
 	const chart: Chart = {
 		metadata: source.metadata,
 		layout: source.layout,
-		timing,
-		notes,
+		timing: normalizeTiming(shiftedTiming),
+		notes: shiftedNotes,
 		scroll: { bpmAffectsScroll: source.bpmAffectsScroll, baseBpm }
 	};
 

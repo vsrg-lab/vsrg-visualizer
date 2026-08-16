@@ -90,3 +90,52 @@ describe("compileChart - ms axis", () => {
 		expect(chart.metadata.title).toBe("T");
 	});
 });
+
+describe("compileChart - normalization", () => {
+	it("moves the first point to t=0 when the chart starts later", () => {
+		const { chart } = compileChart(source({
+			events: [{ kind: "bpm", at: 3000, bpm: 150 }],
+			notes: [tap(3000)]
+		}));
+
+		// the copy at 0 says the same thing as the original at 3000, so merging leaves one point
+		expect(chart.timing).toEqual([
+			{ timeMs: 0, bpm: 150, meter: { beats: 4, noteValue: 4 }, multiplier: 1 }
+		]);
+	});
+
+	it("shifts a negative timeline up to zero and warns", () => {
+		const { chart, warnings } = compileChart(source({
+			events: [{ kind: "bpm", at: -500, bpm: 120 }, { kind: "bpm", at: 500, bpm: 140 }],
+			notes: [tap(-500), tap(1500)]
+		}));
+
+		expect(chart.timing.map(p => p.timeMs)).toEqual([0, 1000]);
+		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 2000]);
+		expect(warnings.some(w => w.code === "shifted-to-zero")).toBe(true);
+	});
+
+	it("merges consecutive points that say the same thing", () => {
+		const { chart } = compileChart(source({
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "sv", at: 1000, multiplier: 1 },
+				{ kind: "bpm", at: 2000, bpm: 120 },
+				{ kind: "bpm", at: 3000, bpm: 200 }
+			],
+			notes: [tap(0), tap(4000)]
+		}));
+
+		expect(chart.timing.map(p => p.timeMs)).toEqual([0, 3000]);
+	});
+
+	it("keeps the last point when several land on the same millisecond", () => {
+		const { chart } = compileChart(source({
+			events: [{ kind: "bpm", at: 0, bpm: 120 }, { kind: "bpm", at: 0.4, bpm: 200 }],
+			notes: [tap(0), tap(1000)]
+		}));
+
+		expect(chart.timing).toHaveLength(1);
+		expect(chart.timing[0]).toEqual({ timeMs: 0, bpm: 200, meter: { beats: 4, noteValue: 4 }, multiplier: 1 });
+	});
+});

@@ -29,12 +29,18 @@ describe("parseUrc", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.chart.metadata.title).toBe("Song");
-		expect(r.chart.layout.totalKeys).toBe(4);
-		expect(r.chart.timing).toHaveLength(1);
-		expect(r.chart.notes).toEqual([
-			{ kind: "tap", timeMs: 0, lane: 0 },
-			{ kind: "hold", lane: 1, startMs: 500, endMs: 1000 }
+		expect(r.source.metadata.title).toBe("Song");
+		expect(r.source.layout.totalKeys).toBe(4);
+		expect(r.source.timeAxis).toBe("ms");
+		expect(r.source.bpmAffectsScroll).toBe(false);
+		expect(r.source.events).toEqual([
+			{ kind: "bpm", at: 0, bpm: 120 },
+			{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
+			{ kind: "sv", at: 0, multiplier: 1 }
+		]);
+		expect(r.source.notes).toEqual([
+			{ kind: "tap", at: 0, lane: 0 },
+			{ kind: "hold", lane: 1, at: 500, end: 1000 }
 		]);
 	});
 
@@ -54,10 +60,5 @@ describe("parseUrc", () => {
 	it("treats @Judgment as optional", () => {
 		const r = parseUrc(valid);
 		expect(r.ok).toBe(true);
-
-		if (!r.ok)
-			return;
-
-		expect(r.chart.judgment).toBeUndefined();
 	});
 });

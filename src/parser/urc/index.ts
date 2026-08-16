@@ -4,12 +4,31 @@ import { parseMetadata } from "./metadata";
 import { parseNotes } from "./notes";
 import { splitSections } from "./sections";
 import { parseTiming } from "./timing";
-import type { Chart, ParseError } from "../../model/types";
+import type { SourceChart, SourceNote, TimingEvent } from "../../model/source";
+import type { Note, ParseError, TimingPoint } from "../../model/types";
 
 /** outcome of parsing a URC document: a Chart, or a line-sorted list of errors. */
-export type ParseResult = { ok: true; chart: Chart } | { ok: false; errors: ParseError[] };
+export type ParseResult = { ok: true; source: SourceChart } | { ok: false; errors: ParseError[] };
 
-/** Parses a full URC document into a Chart, aggregating all section errors. */
+/** URC states timing on the millisecond axis with an explicit multiplier, so each row becomes three events. */
+function toEvents(points: TimingPoint[]): TimingEvent[] {
+	const events: TimingEvent[] = [];
+	for (const point of points) {
+		events.push({ kind: "bpm", at: point.timeMs, bpm: point.bpm });
+		events.push({ kind: "meter", at: point.timeMs, beats: point.meter.beats, noteValue: point.meter.noteValue });
+		events.push({ kind: "sv", at: point.timeMs, multiplier: point.multiplier });
+	}
+
+	return events;
+}
+
+function toSourceNotes(notes: Note[]): SourceNote[] {
+	return notes.map(note => note.kind === "hold"
+		? { kind: "hold", lane: note.lane, at: note.startMs, end: note.endMs }
+		: { kind: note.kind, lane: note.lane, at: note.timeMs });
+}
+
+/** Parses a full URC document into a SourceChart, aggregating all section errors. */
 export function parseUrc(text: string): ParseResult {
 	const split = splitSections(text);
 	if (!split.ok)
@@ -39,16 +58,16 @@ export function parseUrc(text: string): ParseResult {
 	if (errors.length > 0 || !metadata.value || !layout.value || !timing.value || !notes.value)
 		return { ok: false, errors: sortByLine(errors) };
 
-	const chart: Chart = {
+	const source: SourceChart = {
 		metadata: metadata.value,
 		layout: layout.value,
-		timing: timing.value,
-		notes: notes.value
+		timeAxis: "ms",
+		bpmAffectsScroll: false,
+		events: toEvents(timing.value),
+		notes: toSourceNotes(notes.value)
 	};
-	if (judgment && judgment.value)
-		chart.judgment = judgment.value;
 
-	return { ok: true, chart };
+	return { ok: true, source };
 }
 
 function sortByLine(errors: ParseError[]): ParseError[] {
