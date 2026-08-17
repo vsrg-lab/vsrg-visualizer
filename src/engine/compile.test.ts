@@ -248,3 +248,50 @@ describe("compileChart - warps", () => {
 		expect(chart.notes.map(n => n.kind === "hold" ? n.startMs : n.timeMs)).toEqual([0, 1500]);
 	});
 });
+
+describe("compileChart - beat lines", () => {
+	it("restarts the measure count only where a meter event sits", () => {
+		const { chart } = compileChart(source({
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
+				{ kind: "sv", at: 750, multiplier: 2 }
+			],
+			notes: [tap(0), tap(3000)]
+		}));
+
+		// the sv-only point must not restart the measure grid
+		expect(chart.beatLines.filter(l => l.isMeasure).map(l => l.timeMs)).toEqual([0, 2000]);
+	});
+
+	it("holds the beat grid still for the length of a stop", () => {
+		const { chart } = compileChart(source({
+			timeAxis: "beat",
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
+				{ kind: "stop", at: 2, duration: { unit: "ms", value: 300 } }
+			],
+			notes: [tap(0), tap(6)]
+		}));
+
+		// beat 6 lands exactly on the chart end (3300ms), so it is drawn too
+		expect(chart.beatLines.map(l => l.timeMs)).toEqual([0, 500, 1300, 1800, 2300, 2800, 3300]);
+	});
+
+	it("gives every timing point a measure reset for urc-style charts", () => {
+		const { chart } = compileChart(source({
+			events: [
+				{ kind: "bpm", at: 0, bpm: 120 },
+				{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
+				{ kind: "sv", at: 0, multiplier: 1 },
+				{ kind: "bpm", at: 1000, bpm: 240 },
+				{ kind: "meter", at: 1000, beats: 4, noteValue: 4 },
+				{ kind: "sv", at: 1000, multiplier: 1 }
+			],
+			notes: [tap(0), tap(2000)]
+		}));
+
+		expect(chart.beatLines.filter(l => l.isMeasure).map(l => l.timeMs)).toEqual([0, 1000, 2000]);
+	});
+});

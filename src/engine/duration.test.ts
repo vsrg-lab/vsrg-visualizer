@@ -7,6 +7,7 @@ const baseChart = (notes: Note[]): Chart => ({
 	metadata: { original: "x", title: "x", artist: "x", creator: "x", version: "x" },
 	layout: { totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 },
 	timing: [{ timeMs: 0, bpm: 120, meter: { beats: 4, noteValue: 4 }, multiplier: 1 }],
+	beatLines: [],
 	scroll: { bpmAffectsScroll: false, baseBpm: 120 },
 	notes
 });

@@ -10,6 +10,7 @@ function chart(over: Partial<Chart>): Chart {
 		metadata: { original: "test", title: "T", artist: "A", creator: "C", version: "V" },
 		layout: { totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 },
 		timing: [{ timeMs: 0, bpm: 120, meter, multiplier: 1 }],
+		beatLines: [],
 		notes: [],
 		scroll: { bpmAffectsScroll: true, baseBpm: 120 },
 		...over

@@ -18,6 +18,9 @@ export type Meter = { beats: number; noteValue: number };
 /** A timing/BPM change point with optional scroll-velocity multiplier. */
 export type TimingPoint = { timeMs: number; bpm: number; meter: Meter; multiplier: number };
 
+/** A rendered beat line; measure lines (downbeats) are drawn more prominently. */
+export type BeatLine = { timeMs: number; isMeasure: boolean };
+
 /** Song/chart identity. */
 export type Metadata = { original: string; title: string; artist: string; creator: string; version: string };
 
@@ -33,6 +36,7 @@ export type Chart = {
 	layout: Layout;
 	timing: TimingPoint[];
 	notes: Note[];
+	beatLines: BeatLine[];
 	scroll: ScrollInfo;
 };
 

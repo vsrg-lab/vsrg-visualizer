@@ -1,5 +1,6 @@
+import { generateBeatLines, type BeatSegment } from "./beats";
 import type { Duration, SourceChart, TimingEvent } from "../model/source";
-import type { Chart, Meter, Note, TimingPoint, Warning } from "../model/types";
+import type { BeatLine, Chart, Meter, Note, TimingPoint, Warning } from "../model/types";
 
 /** Applied order for events sharing a position. Fixing it keeps compilation deterministic. */
 const EVENT_ORDER: Record<TimingEvent["kind"], number> = { bpm: 0, meter: 1, sv: 2, warp: 3, stop: 4 };
@@ -8,7 +9,14 @@ const DEFAULT_BPM = 120;
 const DEFAULT_METER: Meter = { beats: 4, noteValue: 4 };
 
 /** A timing point before the multiplier is worked out. */
-type RawPoint = { timeMs: number; bpm: number; meter: Meter; sv: number; stopped: boolean };
+type RawPoint = {
+	timeMs: number;
+	bpm: number;
+	meter: Meter;
+	sv: number;
+	stopped: boolean;
+	resetsMeasure: boolean;
+};
 
 function sortEvents(events: TimingEvent[]): TimingEvent[] {
 	return [...events].sort((a, b) => a.at - b.at || EVENT_ORDER[a.kind] - EVENT_ORDER[b.kind]);
@@ -200,13 +208,16 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 			timeMs = groupAt;
 
 		let stopMs = 0;
+		let hadMeter = false;
+
 		while (i < sorted.length && sorted[i].at === groupAt) {
 			const event = sorted[i];
 			if (event.kind === "bpm")
 				bpm = event.bpm;
-			else if (event.kind === "meter")
+			else if (event.kind === "meter") {
 				meter = { beats: event.beats, noteValue: event.noteValue };
-			else if (event.kind === "sv")
+				hadMeter = true;
+			} else if (event.kind === "sv")
 				sv = event.multiplier;
 			else if (event.kind === "stop" && beatAxis)
 				stopMs += durationToMs(event.duration, bpm);
@@ -217,11 +228,11 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 		const timeMsIn = timeMs;
 
 		if (stopMs > 0) {
-			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: true });
+			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: true, resetsMeasure: hadMeter });
 			timeMs = timeMsIn + stopMs;
-			points.push({ timeMs, bpm, meter, sv, stopped: false });
+			points.push({ timeMs, bpm, meter, sv, stopped: false, resetsMeasure: hadMeter });
 		} else
-			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: false });
+			points.push({ timeMs: timeMsIn, bpm, meter, sv, stopped: false, resetsMeasure: hadMeter });
 
 		marks.push({ at: groupAt, timeMsIn, timeMsOut: timeMs, bpm });
 	}
@@ -272,9 +283,6 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 		multiplier: point.stopped ? 0 : (source.bpmAffectsScroll ? point.bpm / baseBpm : 1) * point.sv
 	}));
 
-	let shiftedTiming = timing;
-	let shiftedNotes = notes;
-
 	let minMs = 0;
 	for (const point of timing)
 		minMs = Math.min(minMs, point.timeMs);
@@ -282,8 +290,11 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 	for (const note of notes)
 		minMs = Math.min(minMs, note.kind === "hold" ? note.startMs : note.timeMs);
 
-	if (minMs < 0) {
-		const shift = -minMs;
+	const shift = minMs < 0 ? -minMs : 0;
+	let shiftedTiming = timing;
+	let shiftedNotes = notes;
+
+	if (shift > 0) {
 		warnings.push({
 			code: "shifted-to-zero",
 			message: `timeline shifted by ${shift}ms so it starts at 0`
@@ -292,11 +303,26 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 		shiftedNotes = notes.map(note => shiftNote(note, shift));
 	}
 
+	const lineEndMs = endMs + shift;
+	const segments: BeatSegment[] = points.map((point, index) => ({
+		timeMs: Math.round(point.timeMs) + shift,
+		endMs: index + 1 < points.length
+			? Math.round(points[index + 1].timeMs) + shift
+			: Math.max(lineEndMs, Math.round(point.timeMs) + shift) + 1,
+		bpm: point.bpm,
+		beatsPerMeasure: point.meter.beats,
+		resetsMeasure: index === 0 || point.resetsMeasure,
+		stopped: point.stopped
+	}));
+
+	const beatLines: BeatLine[] = generateBeatLines(segments, lineEndMs);
+
 	const chart: Chart = {
 		metadata: source.metadata,
 		layout: source.layout,
 		timing: normalizeTiming(shiftedTiming),
 		notes: shiftedNotes,
+		beatLines,
 		scroll: { bpmAffectsScroll: source.bpmAffectsScroll, baseBpm }
 	};
 

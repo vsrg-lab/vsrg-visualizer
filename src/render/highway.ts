@@ -1,8 +1,7 @@
 import { Container, Graphics } from "pixi.js";
 
-import { generateBeatLines, type BeatLine } from "../engine/beats";
 import { buildScrollModel, screenY, type ScrollModel } from "../engine/scroll";
-import type { Chart, Note } from "../model/types";
+import type { BeatLine, Chart, Note } from "../model/types";
 
 /** Static geometry of the highway. pxPerUnit (scroll speed) is supplied per-frame to render(). */
 export type HighwayOptions = { laneWidth: number; receptorY: number; height: number };
