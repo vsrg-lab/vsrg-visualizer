@@ -23,20 +23,12 @@ export class Highway {
 		this.chart = chart;
 		this.opts = opts;
 		this.scroll = buildScrollModel(chart.timing);
-		this.beats = generateBeatLines(chart.timing, this.endMs());
+		this.beats = chart.beatLines;
 
 		stage.addChild(this.statics);
 		stage.addChild(this.dynamic);
 
 		this.drawStatic();
-	}
-
-	private endMs(): number {
-		let end = 0;
-		for (const n of this.chart.notes)
-			end = Math.max(end, n.kind === "hold" ? n.endMs : n.timeMs);
-
-		return end;
 	}
 
 	private laneX(lane: number): number {
