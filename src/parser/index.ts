@@ -3,7 +3,7 @@ import { parseQua } from "./qua";
 import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
 import type { ParseResult } from "../model/source";
-import type { LoadResult, SourceFormat } from "../model/types";
+import type { Chart, LoadResult, SourceFormat, Warning } from "../model/types";
 
 /** Decodes as UTF-8 and drops a byte order mark if present. */
 function decodeUtf8(bytes: ArrayBuffer): string {
@@ -37,15 +37,16 @@ function toLoadResult(sourceFormat: SourceFormat, parsed: ParseResult): LoadResu
 	if (!parsed.ok)
 		return { ok: false, errors: parsed.errors };
 
-	const compiled = compileChart(parsed.source);
-	return {
-		ok: true,
-		set: {
-			sourceFormat,
-			charts: [compiled.chart],
-			warnings: [...(parsed.warnings ?? []), ...compiled.warnings]
-		}
-	};
+	const charts: Chart[] = [];
+	const warnings: Warning[] = [...(parsed.warnings ?? [])];
+
+	for (const source of parsed.sources) {
+		const compiled = compileChart(source);
+		charts.push(compiled.chart);
+		warnings.push(...compiled.warnings);
+	}
+
+	return { ok: true, set: { sourceFormat, charts, warnings } };
 }
 
 /** Loads one chart file: decode, detect format, parse, compile. */

@@ -34,5 +34,5 @@ export type SourceChart = {
 
 /** Outcome of parsing a chart document into a SourceChart. warnings is omitted by strict formats that produce none. */
 export type ParseResult =
-	| { ok: true; source: SourceChart; warnings?: Warning[] }
+	| { ok: true; sources: SourceChart[]; warnings?: Warning[] }
 	| { ok: false; errors: ParseError[] };

@@ -47,16 +47,16 @@ describe("parseUrc", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.metadata.title).toBe("Song");
-		expect(r.source.layout.totalKeys).toBe(4);
-		expect(r.source.timeAxis).toBe("ms");
-		expect(r.source.bpmAffectsScroll).toBe(false);
-		expect(r.source.events).toEqual([
+		expect(r.sources[0].metadata.title).toBe("Song");
+		expect(r.sources[0].layout.totalKeys).toBe(4);
+		expect(r.sources[0].timeAxis).toBe("ms");
+		expect(r.sources[0].bpmAffectsScroll).toBe(false);
+		expect(r.sources[0].events).toEqual([
 			{ kind: "bpm", at: 0, bpm: 120 },
 			{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
 			{ kind: "sv", at: 0, multiplier: 1 }
 		]);
-		expect(r.source.notes).toEqual([
+		expect(r.sources[0].notes).toEqual([
 			{ kind: "tap", at: 0, lane: 0 },
 			{ kind: "hold", lane: 1, at: 500, end: 1000 }
 		]);
@@ -89,7 +89,7 @@ describe("metadata", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.metadata).toEqual({
+		expect(r.sources[0].metadata).toEqual({
 			original: "osu!mania",
 			title: "Song",
 			artist: "Artist",
@@ -127,7 +127,7 @@ describe("layout", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
+		expect(r.sources[0].layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
 	});
 
 	it("parses a hybrid layout with special lanes", () => {
@@ -137,7 +137,7 @@ describe("layout", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.layout).toEqual({ totalKeys: 8, normalKeys: 7, specialLanes: [7], stages: 1 });
+		expect(r.sources[0].layout).toEqual({ totalKeys: 8, normalKeys: 7, specialLanes: [7], stages: 1 });
 	});
 
 	it("errors when a special index is out of range", () => {
@@ -169,7 +169,7 @@ describe("timing", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.events).toEqual([
+		expect(r.sources[0].events).toEqual([
 			{ kind: "bpm", at: 0, bpm: 120 },
 			{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
 			{ kind: "sv", at: 0, multiplier: 1 },
@@ -218,7 +218,7 @@ describe("notes", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.notes).toEqual([
+		expect(r.sources[0].notes).toEqual([
 			{ kind: "tap", at: 0, lane: 0 },
 			{ kind: "mine", at: 100, lane: 1 },
 			{ kind: "fake", at: 200, lane: 2 }
@@ -232,7 +232,7 @@ describe("notes", () => {
 		if (!r.ok)
 			return;
 
-		expect(r.source.notes).toEqual([{ kind: "hold", lane: 0, at: 0, end: 500 }]);
+		expect(r.sources[0].notes).toEqual([{ kind: "hold", lane: 0, at: 0, end: 500 }]);
 	});
 
 	it("errors on an unpaired LS", () => {

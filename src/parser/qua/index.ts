@@ -159,5 +159,5 @@ export function parseQua(source: string): ParseResult {
 		notes
 	};
 
-	return { ok: true, source: chart, warnings };
+	return { ok: true, sources: [chart], warnings };
 }

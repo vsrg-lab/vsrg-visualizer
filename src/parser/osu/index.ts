@@ -194,5 +194,5 @@ export function parseOsu(text: string): ParseResult {
 
 	const source: SourceChart = { metadata, layout, timeAxis: "ms", bpmAffectsScroll: true, events, notes };
 
-	return { ok: true, source, warnings };
+	return { ok: true, sources:[source], warnings };
 }

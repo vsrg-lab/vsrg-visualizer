@@ -329,7 +329,7 @@ export function parseUrc(text: string): ParseResult {
 		notes: toSourceNotes(notes.value)
 	};
 
-	return { ok: true, source };
+	return { ok: true, sources: [source] };
 }
 
 function sortByLine(errors: ParseError[]): ParseError[] {

@@ -37,16 +37,16 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.metadata).toEqual({
+		expect(result.sources[0].metadata).toEqual({
 			original: "Quaver",
 			title: "Song",
 			artist: "Artist",
 			creator: "Mapper",
 			version: "Insane"
 		});
-		expect(result.source.layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
-		expect(result.source.timeAxis).toBe("ms");
-		expect(result.source.bpmAffectsScroll).toBe(false);
+		expect(result.sources[0].layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
+		expect(result.sources[0].timeAxis).toBe("ms");
+		expect(result.sources[0].bpmAffectsScroll).toBe(false);
 	});
 
 	it("converts lanes from 1-based and reads hold ends and mines", () => {
@@ -55,7 +55,7 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.notes).toEqual([
+		expect(result.sources[0].notes).toEqual([
 			{ kind: "tap", at: 0, lane: 0 },
 			{ kind: "hold", lane: 1, at: 500, end: 1500 },
 			{ kind: "mine", at: 750, lane: 2 }
@@ -68,8 +68,8 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.events).toContainEqual({ kind: "sv", at: 0, multiplier: 0.9 });
-		expect(result.source.events).toContainEqual({ kind: "sv", at: 1000, multiplier: 2 });
+		expect(result.sources[0].events).toContainEqual({ kind: "sv", at: 0, multiplier: 0.9 });
+		expect(result.sources[0].events).toContainEqual({ kind: "sv", at: 1000, multiplier: 2 });
 	});
 
 	it("adds a scratch lane as the highest lane", () => {
@@ -78,7 +78,7 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.layout).toEqual({ totalKeys: 5, normalKeys: 4, specialLanes: [4], stages: 1 });
+		expect(result.sources[0].layout).toEqual({ totalKeys: 5, normalKeys: 4, specialLanes: [4], stages: 1 });
 	});
 
 	it("honours BPMDoesNotAffectScrollVelocity", () => {
@@ -87,7 +87,7 @@ describe("parseQua", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.bpmAffectsScroll).toBe(true);
+		expect(result.sources[0].bpmAffectsScroll).toBe(true);
 	});
 
 	it("warns about timing groups it ignores", () => {

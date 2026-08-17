@@ -35,16 +35,16 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.timeAxis).toBe("ms");
-		expect(result.source.bpmAffectsScroll).toBe(true);
-		expect(result.source.metadata).toEqual({
+		expect(result.sources[0].timeAxis).toBe("ms");
+		expect(result.sources[0].bpmAffectsScroll).toBe(true);
+		expect(result.sources[0].metadata).toEqual({
 			original: "osu!mania",
 			title: "Song",
 			artist: "Artist",
 			creator: "Mapper",
 			version: "Insane"
 		});
-		expect(result.source.layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
+		expect(result.sources[0].layout).toEqual({ totalKeys: 4, normalKeys: 4, specialLanes: [], stages: 1 });
 	});
 
 	it("turns an uninherited point into bpm, meter and an sv reset", () => {
@@ -53,7 +53,7 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.events.slice(0, 3)).toEqual([
+		expect(result.sources[0].events.slice(0, 3)).toEqual([
 			{ kind: "bpm", at: 0, bpm: 120 },
 			{ kind: "meter", at: 0, beats: 4, noteValue: 4 },
 			{ kind: "sv", at: 0, multiplier: 1 }
@@ -66,7 +66,7 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.events).toContainEqual({ kind: "sv", at: 1000, multiplier: 2 });
+		expect(result.sources[0].events).toContainEqual({ kind: "sv", at: 1000, multiplier: 2 });
 	});
 
 	it("maps x to a column and reads the hold end time", () => {
@@ -75,7 +75,7 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.notes).toEqual([
+		expect(result.sources[0].notes).toEqual([
 			{ kind: "tap", at: 0, lane: 0 },
 			{ kind: "hold", lane: 1, at: 500, end: 1500 }
 		]);
@@ -91,8 +91,8 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.notes[0]).toEqual({ kind: "tap", at: 0, lane: 0 });
-		expect(result.source.notes[1]).toEqual({ kind: "tap", at: 10, lane: 3 });
+		expect(result.sources[0].notes[0]).toEqual({ kind: "tap", at: 0, lane: 0 });
+		expect(result.sources[0].notes[1]).toEqual({ kind: "tap", at: 10, lane: 3 });
 	});
 
 	it("puts the special lane leftmost when SpecialStyle is on", () => {
@@ -101,8 +101,8 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.layout.specialLanes).toEqual([0]);
-		expect(result.source.layout.normalKeys).toBe(3);
+		expect(result.sources[0].layout.specialLanes).toEqual([0]);
+		expect(result.sources[0].layout.normalKeys).toBe(3);
 	});
 
 	it("infers a double stage above ten keys and warns", () => {
@@ -111,7 +111,7 @@ describe("parseOsu", () => {
 		if (!result.ok)
 			return;
 
-		expect(result.source.layout.stages).toBe(2);
+		expect(result.sources[0].layout.stages).toBe(2);
 		expect(result.warnings?.some(w => w.code === "stages-inferred")).toBe(true);
 	});
 
