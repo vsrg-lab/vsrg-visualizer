@@ -1,5 +1,6 @@
 import { parseOsu } from "./osu";
 import { parseQua } from "./qua";
+import { parseSm } from "./sm";
 import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
 import type { ParseResult } from "../model/source";
@@ -21,12 +22,16 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 	const extension = extensionOf(fileName);
 	if (extension === "urc" || extension === "osu" || extension === "qua")
 		return extension;
+	if (extension === "sm" || extension === "ssc")
+		return "sm";
 
 	const head = text.slice(0, 200);
 	if (head.includes("@URC"))
 		return "urc";
 	if (head.includes("osu file format v"))
 		return "osu";
+	if (/^#(TITLE|VERSION|BPMS|NOTEDATA|OFFSET):/m.test(head))
+		return "sm";
 	if (/^(AudioFile|Mode|MapId|Title):/m.test(head))
 		return "qua";
 
@@ -67,5 +72,7 @@ export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
 		return toLoadResult("urc", parseUrc(text));
 	if (format === "osu")
 		return toLoadResult("osu", parseOsu(text));
+	if (format === "sm")
+		return toLoadResult("sm", parseSm(text));
 	return toLoadResult("qua", parseQua(text));
 }

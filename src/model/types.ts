@@ -41,7 +41,7 @@ export type Chart = {
 };
 
 /** Which format a file came from. */
-export type SourceFormat = "urc" | "osu" | "qua";
+export type SourceFormat = "urc" | "osu" | "qua" | "sm";
 
 /** What one file produces. SM/O2Jam yield several charts; Qua/Osu/Urc yield one. */
 export type ChartSet = { sourceFormat: SourceFormat; charts: Chart[]; warnings: Warning[] };

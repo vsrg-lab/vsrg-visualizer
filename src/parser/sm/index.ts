@@ -81,7 +81,7 @@ function readSscBlocks(tags: MsdTag[], firstNoteData: number): ChartBlock[] {
 		if (current && body !== null)
 			blocks.push({
 				tags: current,
-				stepstype: current.get("STEPSTYLE") ?? "",
+				stepstype: current.get("STEPSTYPE") ?? "",
 				difficulty: current.get("DIFFICULTY") ?? "",
 				meter: current.get("METER") ?? "",
 				body
