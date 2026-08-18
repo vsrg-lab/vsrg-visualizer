@@ -22,6 +22,7 @@ function now(): number {
 export function App() {
 	const [set, setSet] = useState<ChartSet | null>(null);
 	const [errors, setErrors] = useState<ParseError[]>([]);
+	const [file, setFile] = useState<{ bytes: ArrayBuffer, fileName: string } | null>(null);
 	const [selected, setSelected] = useState<number>(0);
 	const [scrollMode, setScrollMode] = useState<ScrollMode>("original");
 	const [playing, setPlaying] = useState<boolean>(false);
@@ -36,9 +37,8 @@ export function App() {
 		[set, selected, scrollMode]
 	);
 
-	async function handleFile(file: File): Promise<void> {
-		const bytes = await file.arrayBuffer();
-		const result = loadChart(bytes, file.name);
+	function load(bytes: ArrayBuffer, fileName: string): void {
+		const result = loadChart(bytes, fileName);
 
 		clock.pause();
 		clock.seek(0);
@@ -53,6 +53,12 @@ export function App() {
 
 		setSet(null);
 		setErrors(result.errors);
+	}
+
+	async function handleFile(file: File): Promise<void> {
+		const bytes = await file.arrayBuffer();
+		setFile({ bytes, fileName: file.name });
+		load(bytes, file.name);
 	}
 
 	useEffect(() => {
@@ -89,8 +95,23 @@ export function App() {
 			</div>
 			{set && chart && (
 				<>
-					<ChartSelect charts={set.charts} selected={selected} onSelect={setSelected} />
-					<Warnings warnings={set.warnings} />
+					<div className="flex flex-wrap items-center gap-2 px-2">
+						<ChartSelect charts={set.charts} selected={selected} onSelect={setSelected} />
+						<Warnings warnings={set.warnings} />
+						{set.warnings.some(warning => warning.code === "random-branch") && (
+							<button
+								type="button"
+								className="btn btn-xs btn-outline"
+								onClick={() => {
+									if (file)
+										load(file.bytes, file.fileName);
+								}}
+							>
+								Reroll random brancehs
+							</button>
+						)}
+					</div>
+
 					<ChartInfo chart={chart} timeMs={timeMs} />
 					<Transport
 						playing={playing}

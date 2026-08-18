@@ -79,6 +79,25 @@ const sm = [
 	";"
 ].join("\n");
 
+const bms = [
+	"#BPM 120",
+	"#TITLE Song",
+	"#00011:01",
+	"#00112:01"
+].join("\n");
+
+const randomBms = [
+	"#BPM 120",
+	"#RANDOM 2",
+	"#IF 1",
+	"#00011:01",
+	"#ENDIF",
+	"#IF 2",
+	"#00012:01",
+	"#ENDIF",
+	"#ENDRANDOM"
+].join("\n");
+
 const bytes = (text: string) => new TextEncoder().encode(text).buffer as ArrayBuffer;
 
 describe("loadChart - URC & General", () => {
@@ -170,5 +189,52 @@ describe("loadChart - StepMania", () => {
 	it("detects StepMania from content when the extension is missing", () => {
 		const result = loadChart(bytes(sm), "song");
 		expect(result.ok).toBe(true);
+	});
+});
+
+describe("loadChart - BMS", () => {
+	it("loads a .bms file", () => {
+		const result = loadChart(bytes(bms), "song.bms");
+		expect(result.ok).toBe(true);
+
+		if (!result.ok)
+			return;
+
+		expect(result.set.sourceFormat).toBe("bms");
+		expect(result.set.charts).toHaveLength(1);
+		expect(result.set.charts[0].notes.length).toBeGreaterThan(0);
+	});
+
+	it("detects BMS from content when the extension is missing", () => {
+		const result = loadChart(bytes(bms), "song");
+		expect(result.ok).toBe(true);
+
+		if (!result.ok)
+			return;
+
+		expect(result.set.sourceFormat).toBe("bms");
+	});
+
+	it("loads a .pms file as BMS with the 9-key layout", () => {
+		const result = loadChart(bytes(bms), "song.pms");
+		expect(result.ok).toBe(true);
+
+		if (!result.ok)
+			return;
+
+		expect(result.set.sourceFormat).toBe("bms");
+		expect(result.set.charts[0].layout.totalKeys).toBe(9);
+	});
+
+	it("produces deterministic results with an injected rng", () => {
+		const first = loadChart(bytes(randomBms), "song.bms", { rng: () => 1 });
+		const second = loadChart(bytes(randomBms), "song.bms", { rng: () => 1 });
+		expect(first.ok).toBe(true);
+		expect(second.ok).toBe(true);
+
+		if (!first.ok || !second.ok)
+			return;
+
+		expect(second.set.charts[0].notes).toEqual(first.set.charts[0].notes);
 	});
 });

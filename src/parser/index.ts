@@ -1,3 +1,5 @@
+import { parseBms } from "./bms";
+import type { Rng } from "./bms/preprocess";
 import { parseOsu } from "./osu";
 import { parseQua } from "./qua";
 import { parseSm } from "./sm";
@@ -5,6 +7,11 @@ import { parseUrc } from "./urc";
 import { compileChart } from "../engine/compile";
 import type { ParseResult } from "../model/source";
 import type { Chart, LoadResult, SourceFormat, Warning } from "../model/types";
+
+/** Options for loadChart; rng seeds #RANDOM/#SWITCH brancehs in BMS. */
+export type LoadOptions = { rng?: Rng };
+
+const defaultRng: Rng = max => 1 + Math.floor(Math.random() * max);
 
 /** Decodes as UTF-8 and drops a byte order mark if present. */
 function decodeUtf8(bytes: ArrayBuffer): string {
@@ -24,6 +31,8 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 		return extension;
 	if (extension === "sm" || extension === "ssc")
 		return "sm";
+	if (extension === "bms" || extension === "bme" || extension === "bml" || extension === "pms")
+		return "bms";
 
 	const head = text.slice(0, 200);
 	if (head.includes("@URC"))
@@ -32,6 +41,10 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 		return "osu";
 	if (/^#(TITLE|VERSION|BPMS|NOTEDATA|OFFSET):/m.test(head))
 		return "sm";
+	// BMS channel lines and space-separated headers are ASCII, so sniffing survives
+	// Shift-JIS decoding turning the rest of the text into garbage.
+	if (/^#\d{3}[0-9A-Za-z]{2}:/m.test(head) || /^#[A-Z]+ \S/m.test(head))
+		return "bms";
 	if (/^(AudioFile|Mode|MapId|Title):/m.test(head))
 		return "qua";
 
@@ -55,7 +68,7 @@ function toLoadResult(sourceFormat: SourceFormat, parsed: ParseResult): LoadResu
 }
 
 /** Loads one chart file: decode, detect format, parse, compile. */
-export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
+export function loadChart(bytes: ArrayBuffer, fileName: string, options?: LoadOptions): LoadResult {
 	const text = decodeUtf8(bytes);
 	const format = detectFormat(text, fileName);
 
@@ -74,5 +87,7 @@ export function loadChart(bytes: ArrayBuffer, fileName: string): LoadResult {
 		return toLoadResult("osu", parseOsu(text));
 	if (format === "sm")
 		return toLoadResult("sm", parseSm(text));
+	if (format === "bms")
+		return toLoadResult("bms", parseBms(bytes, options?.rng ?? defaultRng, extensionOf(fileName) === "pms"));
 	return toLoadResult("qua", parseQua(text));
 }

@@ -25,6 +25,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "bms": "^51.0.0",
     "daisyui": "^5.7.16",
     "eslint": "^10.8.0",
     "eslint-plugin-import-x": "^4.17.1",
