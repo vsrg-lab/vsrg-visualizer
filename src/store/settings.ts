@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 import type { ScrollMode } from "../engine/flatten";
+import type { ThemeChoice } from "../theme";
 
 /** Scroll speed bounds - every write into the store is calmped into this range. */
 export const SCROLL_SPEED_MIN = 0.05;
@@ -10,7 +11,6 @@ export const SCROLL_SPEED_MAX = 2;
 export const HIGHWAY_SCALE_MIN = 0.5;
 export const HIGHWAY_SCALE_MAX = 2;
 
-type ThemeChoice = "system" | "light" | "dark";
 type PanelSide = "left" | "right";
 
 type SettingsState = {

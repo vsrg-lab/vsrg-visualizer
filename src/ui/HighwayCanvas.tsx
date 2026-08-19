@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import type { Clock } from "../engine/clock";
 import type { Chart } from "../model/types";
 import { Highway } from "../render/highway";
-import { BASE_BG } from "../theme";
+import { THEMES } from "../theme";
 
 type HighwayCanvasProps = {
 	chart: Chart;
@@ -34,7 +34,7 @@ export function HighwayCanvas({ chart, clock, pxPerUnit }: HighwayCanvasProps) {
 
 		void (async () => {
 			const created = new Application();
-			await created.init({ background: BASE_BG, resizeTo: host });
+			await created.init({ background: THEMES.dark.baseBg, resizeTo: host });
 			if (canceled) {
 				created.destroy(true, { children: true });
 				return;

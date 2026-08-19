@@ -2,17 +2,18 @@ import { Container, Graphics } from "pixi.js";
 
 import { buildScrollModel, screenY, type ScrollModel } from "../engine/scroll";
 import type { BeatLine, Chart, Note } from "../model/types";
+import { DARK_PALETTE, type HighwayPalette } from "../theme";
 
 /** Static geometry of the highway. pxPerUnit (scroll speed) is supplied per-frame to render(). */
-export type HighwayOptions = { laneWidth: number; receptorY: number; height: number };
+export type HighwayOptions = { laneWidth: number; receptorY: number; height: number; palette?: HighwayPalette };
 
 const NOTE_HEIGHT = 14;
-const COLORS = { tap: 0x66ccff, hold: 0x3399cc, mine: 0xff4444, fake: 0x9999aa } as const;
 
 /** Renders as SV-aware down-scroll note highway into a Pixi container. */
 export class Highway {
 	private chart: Chart;
 	private opts: HighwayOptions;
+	private palette: HighwayPalette;
 	private scroll: ScrollModel;
 	private beats: BeatLine[];
 
@@ -22,6 +23,7 @@ export class Highway {
 	constructor(stage: Container, chart: Chart, opts: HighwayOptions) {
 		this.chart = chart;
 		this.opts = opts;
+		this.palette = opts.palette ?? DARK_PALETTE;
 		this.scroll = buildScrollModel(chart.timing);
 		this.beats = chart.beatLines;
 
@@ -44,12 +46,12 @@ export class Highway {
 		const w = this.width();
 
 		for (let lane = 0; lane <= this.chart.layout.totalKeys; lane++)
-			g.rect(this.laneX(lane), 0, 1, this.opts.height).fill({ color: 0x2a2a3a });
+			g.rect(this.laneX(lane), 0, 1, this.opts.height).fill({ color: this.palette.laneSeparator });
 
 		for (const lane of this.chart.layout.specialLanes)
-			g.rect(this.laneX(lane), 0, this.opts.laneWidth, this.opts.height).fill({ color: 0x221122, alpha: 0.5 });
+			g.rect(this.laneX(lane), 0, this.opts.laneWidth, this.opts.height).fill({ color: this.palette.laneFill, alpha: 0.5 });
 
-		g.rect(0, this.opts.receptorY, w, 3).fill({ color: 0xffffff });
+		g.rect(0, this.opts.receptorY, w, 3).fill({ color: this.palette.receptor });
 	}
 
 	render(timeMs: number, pxPerUnit: number): void {
@@ -63,7 +65,7 @@ export class Highway {
 			const y = screenY(this.scroll.positionAt(b.timeMs), head, pxPerUnit, this.opts.receptorY);
 			if (y < 0 || y > this.opts.height)
 				continue;
-			g.rect(0, y, w, b.isMeasure ? 2 : 1).fill({ color: b.isMeasure ? 0x666688 : 0x333344 });
+			g.rect(0, y, w, b.isMeasure ? 2 : 1).fill({ color: b.isMeasure ? this.palette.measureLine : this.palette.beatLine });
 		}
 
 		for (const n of this.chart.notes)
@@ -82,7 +84,7 @@ export class Highway {
 			if (top + h < 0 || top > this.opts.height)
 				return;
 
-			g.rect(x, top, w, h).fill({ color: COLORS.hold });
+			g.rect(x, top, w, h).fill({ color: this.palette.hold });
 			return;
 		}
 
@@ -90,7 +92,7 @@ export class Highway {
 		if (y + NOTE_HEIGHT < 0 || y > this.opts.height)
 			return;
 
-		const color = n.kind === "mine" ? COLORS.mine : n.kind === "fake" ? COLORS.fake : COLORS.tap;
+		const color = n.kind === "mine" ? this.palette.mine : n.kind === "fake" ? this.palette.fake : this.palette.tap;
 		g.rect(x, y, w, NOTE_HEIGHT).fill({ color, alpha: n.kind === "fake" ? 0.5 : 1 });
 	}
 
