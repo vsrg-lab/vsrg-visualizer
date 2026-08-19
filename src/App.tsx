@@ -7,6 +7,7 @@ import { useSettingsStore } from "./store/settings";
 import { resolveTheme } from "./theme";
 import { AppShell } from "./ui/shell/AppShell";
 import { EmptyState } from "./ui/shell/EmptyState";
+import { Shortcuts } from "./ui/shell/Shortcuts";
 
 /** The App. */
 export function App() {
@@ -38,8 +39,14 @@ export function App() {
 		return () => media.removeEventListener("change", apply);
 	}, [theme]);
 
-	if (!chart)
-		return <EmptyState errors={errors} onFile={file => void load(file)} />;
+	const content = chart
+		? <AppShell chart={chart} />
+		: <EmptyState errors={errors} onFile={file => void load(file)} />;
 
-	return <AppShell chart={chart} />;
+	return (
+		<>
+			<Shortcuts chart={chart} />
+			{content}
+		</>
+	);
 }
