@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { Warning } from "../model/types";
+import type { Warning } from "../../model/types";
 
 type WarningProps = {
 	warnings: Warning[];

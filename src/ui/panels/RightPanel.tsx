@@ -1,0 +1,88 @@
+import { PANEL_PX } from "../../hooks/useHighwaySize";
+import type { Chart } from "../../model/types";
+import { useChartStore } from "../../store/chart";
+import {
+	HIGHWAY_SCALE_MAX,
+	HIGHWAY_SCALE_MIN,
+	SCROLL_SPEED_MAX,
+	SCROLL_SPEED_MIN,
+	useSettingsStore
+} from "../../store/settings";
+import { ChartInfo } from "../common/ChartInfo";
+import { Warnings } from "../common/Warnings";
+
+type RightPanelProps = {
+	chart: Chart;
+};
+
+/** Right sidebar - "how to look at it": metadata, warnings, reroll and scroll settings. */
+export function RightPanel({ chart }: RightPanelProps) {
+	const warnings = useChartStore(state => state.set?.warnings ?? []);
+	const reroll = useChartStore(state => state.reroll);
+
+	const scrollMode = useSettingsStore(state => state.scrollMode);
+	const setScrollMode = useSettingsStore(state => state.setScrollMode);
+	const scrollSpeed = useSettingsStore(state => state.scrollSpeed);
+	const setScrollSpeed = useSettingsStore(state => state.setScrollSpeed);
+	const highwayScale = useSettingsStore(state => state.highwayScale);
+	const setHighwayScale = useSettingsStore(state => state.setHighwayScale);
+
+	return (
+		<aside
+			className="shrink-0 h-full overflow-y-auto border-l border-base-content/10 p-2 space-y-3"
+			style={{ width: PANEL_PX }}
+		>
+			<ChartInfo chart={chart} />
+			<Warnings warnings={warnings} />
+			{warnings.some(warning => warning.code === "random-branch") && (
+				<button type="button" className="btn btn-xs btn-outline" onClick={reroll}>
+					Reroll random branches
+				</button>
+			)}
+
+			<div className="space-y-1">
+				<div className="text-xs text-base-content/60">Scroll</div>
+				<div className="join">
+					<button
+						className={`btn btn-xs join-item ${scrollMode === "original" ? "btn-active" : ""}`}
+						onClick={() => setScrollMode("original")}
+					>
+						Original
+					</button>
+					<button
+						className={`btn btn-xs join-item ${scrollMode === "noSv" ? "btn-active" : ""}`}
+						onClick={() => setScrollMode("noSv")}
+					>
+						No SV
+					</button>
+				</div>
+			</div>
+
+			<label className="block space-y-1">
+				<span className="text-xs text-base-content/60">Scroll speed - {scrollSpeed.toFixed(2)}</span>
+				<input
+					type="range"
+					className="range range-xs"
+					min={SCROLL_SPEED_MIN}
+					max={SCROLL_SPEED_MAX}
+					step={0.05}
+					value={scrollSpeed}
+					onChange={e => setScrollSpeed(Number(e.target.value))}
+				/>
+			</label>
+
+			<label className="block space-y-1">
+				<span className="text-xs text-base-content/60">Highway scale - {highwayScale.toFixed(2)}x</span>
+				<input
+					type="range"
+					className="range range-xs"
+					min={HIGHWAY_SCALE_MIN}
+					max={HIGHWAY_SCALE_MAX}
+					step={0.1}
+					value={highwayScale}
+					onChange={e => setHighwayScale(Number(e.target.value))}
+				/>
+			</label>
+		</aside>
+	);
+}

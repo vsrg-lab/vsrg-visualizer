@@ -1,4 +1,4 @@
-import type { Chart } from "../model/types";
+import type { Chart } from "../../model/types";
 
 type ChartSelectProps = {
 	charts: Chart[];
