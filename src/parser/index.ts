@@ -1,5 +1,6 @@
 import { parseBms } from "./bms";
 import type { Rng } from "./bms/preprocess";
+import { parseOjn } from "./ojn";
 import { parseOsu } from "./osu";
 import { parseQua } from "./qua";
 import { parseSm } from "./sm";
@@ -25,7 +26,7 @@ function extensionOf(fileName: string): string {
 }
 
 /** Extension first, then content sniffing - files with missing or wrong extensions are common. */
-function detectFormat(text: string, fileName: string): SourceFormat | null {
+function detectFormat(text: string, fileName: string, bytes: ArrayBuffer): SourceFormat | null {
 	const extension = extensionOf(fileName);
 	if (extension === "urc" || extension === "osu" || extension === "qua")
 		return extension;
@@ -33,6 +34,12 @@ function detectFormat(text: string, fileName: string): SourceFormat | null {
 		return "sm";
 	if (extension === "bms" || extension === "bme" || extension === "bml" || extension === "pms")
 		return "bms";
+	if (extension === "ojn")
+		return "ojn";
+
+	// A binary signature at a fixed offset cannot misfire, so it is checked before any text sniffing.
+	if (bytes.byteLength >= 8 && new DataView(bytes).getInt32(4, true) === 0x006e6a6f)
+		return "ojn";
 
 	const head = text.slice(0, 200);
 	if (head.includes("@URC"))
@@ -70,7 +77,7 @@ function toLoadResult(sourceFormat: SourceFormat, parsed: ParseResult): LoadResu
 /** Loads one chart file: decode, detect format, parse, compile. */
 export function loadChart(bytes: ArrayBuffer, fileName: string, options?: LoadOptions): LoadResult {
 	const text = decodeUtf8(bytes);
-	const format = detectFormat(text, fileName);
+	const format = detectFormat(text, fileName, bytes);
 
 	if (format === null)
 		return {
@@ -89,5 +96,7 @@ export function loadChart(bytes: ArrayBuffer, fileName: string, options?: LoadOp
 		return toLoadResult("sm", parseSm(text));
 	if (format === "bms")
 		return toLoadResult("bms", parseBms(bytes, options?.rng ?? defaultRng, extensionOf(fileName) === "pms"));
+	if (format === "ojn")
+		return toLoadResult("ojn", parseOjn(bytes));
 	return toLoadResult("qua", parseQua(text));
 }

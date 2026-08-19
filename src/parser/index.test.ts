@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { loadChart } from "./index";
+import { buildOjn } from "./ojn/fixture";
 
 const urc = [
 	"@URC 1.1",
@@ -236,5 +237,37 @@ describe("loadChart - BMS", () => {
 			return;
 
 		expect(second.set.charts[0].notes).toEqual(first.set.charts[0].notes);
+	});
+});
+
+describe("loadChart - O2Jam", () => {
+	const ojn = buildOjn({
+		difficulties: [
+			{ packages: [] },
+			{ packages: [{ measure: 0, channel: 2, notes: [[1, 0, 0]] }] },
+			{ packages: [{ measure: 0, channel: 3, notes: [[1, 0, 0]] }] }
+		]
+	});
+
+	it("loads a .ojn file", () => {
+		const result = loadChart(ojn, "song.ojn");
+		expect(result.ok).toBe(true);
+
+		if (!result.ok)
+			return;
+
+		expect(result.set.sourceFormat).toBe("ojn");
+		expect(result.set.charts).toHaveLength(2);
+		expect(result.set.charts[0].notes.length).toBeGreaterThan(0);
+	});
+
+	it("detects O2Jam from the byte signature when the extension is missing", () => {
+		const result = loadChart(ojn, "song");
+		expect(result.ok).toBe(true);
+
+		if (!result.ok)
+			return;
+
+		expect(result.set.sourceFormat).toBe("ojn");
 	});
 });

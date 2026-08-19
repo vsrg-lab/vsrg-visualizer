@@ -23,12 +23,12 @@ export function FileDrop({ onFile }: FileDropProps) {
 				onClick={() => inputRef.current?.click()}
 				className="border-2 border-dashed border-base-300 rounded-box p-4 text-center cursor-pointer text-base-content/70 hover:border-base-content/40"
 			>
-				Drop a chart file (.urc, .osu, .qua, .sm/.ssc, .bms/.bme/.bml/.pms) here, or click to choose
+				Drop a chart file (.urc, .osu, .qua, .sm/.ssc, .bms/.bme/.bml/.pms, .ojn) here, or click to choose
 			</div>
 			<input
 				ref={inputRef}
 				type="file"
-				accept=".urc,.osu,.qua,.sm,.ssc,.bms,.bme,.bml,.pms"
+				accept=".urc,.osu,.qua,.sm,.ssc,.bms,.bme,.bml,.pms,.ojn"
 				className="hidden"
 				onChange={e => {
 					const file = e.target.files?.[0];
