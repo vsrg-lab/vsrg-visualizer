@@ -5,7 +5,7 @@ import { drawFake, drawHold, drawMine, drawTap, noteMetrics, type NoteMetrics } 
 import { laneRoles } from "./palette";
 import { buildScrollModel, screenY, type ScrollModel } from "../engine/scroll";
 import type { BeatLine, Chart, Note } from "../model/types";
-import { HIGHWAY_PALETTE, type HighwayPalette } from "../theme";
+import { type HighwayPalette } from "../theme";
 
 /** Static geometry of the highway. pxPerUnit (scroll speed) is supplied per-frame to render(). */
 export type HighwayOptions = {
