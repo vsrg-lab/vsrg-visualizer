@@ -52,7 +52,10 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 
 			app = created;
 			host.appendChild(app.canvas);
+
+			const stageGap = chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
 			highway = new Highway(app.stage, chart, {
+				canvasWidth: size.highwayPx + stageGap,
 				laneWidth: size.laneWidth,
 				receptorY: size.receptorY,
 				height: size.height,
@@ -92,5 +95,6 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 		return () => host.removeEventListener("wheel", onWheel);
 	}, [chart]);
 
-	return <div ref={hostRef} className="h-full" style={{ width: size.highwayPx }} />;
+	const stageGap = chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
+	return <div ref={hostRef} className="h-full" style={{ width: size.highwayPx + stageGap }} />;
 }
