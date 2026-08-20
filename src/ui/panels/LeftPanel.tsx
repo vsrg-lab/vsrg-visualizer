@@ -13,17 +13,19 @@ export function LeftPanel() {
 
 	return (
 		<aside
-			className="shrink-0 h-full overflow-y-auto border-r border-base-content/10 bg-base-200 p-2 space-y-3"
+			className="shrink-0 h-full overflow-y-auto border-r border-base-content/10 bg-base-200 p-2"
 			style={{ width: PANEL_PX }}
 		>
-			<PanelSection title="Chart file">
-				<FileDrop onFile={file => void load(file)} />
-			</PanelSection>
-			{charts.length > 1 && (
-				<PanelSection title="Difficulty">
-					<ChartSelect charts={charts} selected={selected} onSelect={select} />
+			<div className="flex min-h-full flex-col justify-center space-y-3">
+				<PanelSection title="Chart file">
+					<FileDrop onFile={file => void load(file)} />
 				</PanelSection>
-			)}
+				{charts.length > 1 && (
+					<PanelSection title="Difficulty">
+						<ChartSelect charts={charts} selected={selected} onSelect={select} />
+					</PanelSection>
+				)}
+			</div>
 		</aside>
 	);
 }

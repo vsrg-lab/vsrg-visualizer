@@ -16,12 +16,10 @@ function formatClock(ms: number): string {
 
 type TransportProps = {
 	durationMs: number;
-	/** Matches the main-row cluster width when measured. */
-	width?: number;
 };
 
 /** Bottom playback bar. */
-export function Transport({ durationMs, width }: TransportProps) {
+export function Transport({ durationMs }: TransportProps) {
 	const playing = usePlaybackStore(state => state.playing);
 	const timeMs = usePlaybackStore(state => state.timeMs);
 	const rate = usePlaybackStore(state => state.rate);
@@ -32,10 +30,7 @@ export function Transport({ durationMs, width }: TransportProps) {
 	const setRate = usePlaybackStore(state => state.setRate);
 
 	return (
-		<div
-			className="flex flex-col gap-2 px-4 py-2 bg-base-200 border-t border-base-content/10"
-			style={width ? { width } : undefined}
-		>
+		<div className="flex flex-col gap-2 px-4 py-2 bg-base-200 border-t border-base-content/10" >
 			<input
 				type="range"
 				min={0}

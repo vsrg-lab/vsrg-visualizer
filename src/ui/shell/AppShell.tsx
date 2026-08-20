@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
 import { chartEndMs } from "../../engine/duration";
-import { PANEL_PX, useHighwaySize } from "../../hooks/useHighwaySize";
+import { useHighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
 import { useSettingsStore } from "../../store/settings";
 import { HighwayCanvas } from "../common/HighwayCanvas";
@@ -28,19 +28,14 @@ export function AppShell({ chart }: AppShellProps) {
 	const rightPanelOpen = useSettingsStore(state => state.rightPanelOpen);
 	const togglePanel = useSettingsStore(state => state.togglePanel);
 
-	const stageGap = size && chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
-	const clusterWidth = size
-		? (size.effectiveLeft ? PANEL_PX : 0) + size.highwayPx + stageGap + (size.effectiveRight ? PANEL_PX : 0)
-		: undefined;
-
 	return (
-		<div className="flex h-screen justify-center bg-base-300 text-base-content font-sans">
-			<div className="flex h-full w-full flex-col bg-base-100" style={{ maxWidth: APP_MAX_PX }}>
-				<div ref={mainRef} className="flex w-full flex-1 min-h-0 justify-center">
+		<div className="flex h-screen justify-center bg-base-100 px-3 py-8 text-base-content font-sans">
+			<div className="flex h-full w-full flex-col" style={{ maxWidth: APP_MAX_PX }}>
+				<div ref={mainRef} className="flex w-full flex-1 min-h-0 gap-3">
 					{!size?.effectiveLeft && !leftPanelOpen && (
 						<button
 							type="button"
-							className="btn btn-ghost btn-xs self-start m-1 shrink-0"
+							className="btn btn-ghost btn-xs self-center m-1 shrink-0"
 							onClick={() => togglePanel("left")}
 							title="Open left panel"
 						>
@@ -49,13 +44,15 @@ export function AppShell({ chart }: AppShellProps) {
 					)}
 					{size?.effectiveLeft && <LeftPanel />}
 
-					{size && <HighwayCanvas chart={chart} size={size} />}
+					<div className="flex min-h-0 flex-1 justify-center">
+						{size && <HighwayCanvas chart={chart} size={size} />}
+					</div>
 
 					{size?.effectiveRight && <RightPanel chart={chart} />}
 					{!size?.effectiveLeft && !rightPanelOpen && (
 						<button
 							type="button"
-							className="btn btn-ghost btn-xs self-start m-1 shrink-0"
+							className="btn btn-ghost btn-xs self-center m-1 shrink-0"
 							onClick={() => togglePanel("right")}
 							title="Open right panel"
 						>
@@ -63,7 +60,7 @@ export function AppShell({ chart }: AppShellProps) {
 						</button>
 					)}
 				</div>
-				<Transport durationMs={chartEndMs(chart)} width={clusterWidth} />
+				<Transport durationMs={chartEndMs(chart)} />
 			</div>
 		</div>
 	);
