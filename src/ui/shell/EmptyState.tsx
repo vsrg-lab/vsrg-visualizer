@@ -9,7 +9,7 @@ type EmptyStateProps = {
 /** Full-screen drop zone while no chart is loaded; parse errors stay visible underneath. */
 export function EmptyState({ errors, onFile }: EmptyStateProps) {
 	return (
-		<div className="flex flex-col items-center justify-cneter h-screen gap-4 px-8 bg-base-100 text-base-content font-sans">
+		<div className="flex flex-col items-center justify-center h-screen gap-4 px-8 bg-base-100 text-base-content font-sans">
 			<div className="w-full max-w-xl">
 				<FileDrop onFile={onFile} />
 			</div>

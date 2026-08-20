@@ -5,7 +5,7 @@ import { drawFake, drawHold, drawMine, drawTap, noteMetrics, type NoteMetrics } 
 import { laneRoles } from "./palette";
 import { buildScrollModel, screenY, type ScrollModel } from "../engine/scroll";
 import type { BeatLine, Chart, Note } from "../model/types";
-import { DARK_PALETTE, type HighwayPalette } from "../theme";
+import { HIGHWAY_PALETTE, type HighwayPalette } from "../theme";
 
 /** Static geometry of the highway. pxPerUnit (scroll speed) is supplied per-frame to render(). */
 export type HighwayOptions = {
@@ -43,7 +43,7 @@ export class Highway {
 	constructor(stage: Container, chart: Chart, opts: HighwayOptions) {
 		this.chart = chart;
 		this.opts = opts;
-		this.palette = opts.palette ?? DARK_PALETTE;
+		this.palette = opts.palette ?? HIGHWAY_PALETTE;
 		this.scroll = buildScrollModel(chart.timing);
 		this.beats = chart.beatLines;
 		this.geo = highwayGeometry(opts.canvasWidth, opts.laneWidth, chart.layout);

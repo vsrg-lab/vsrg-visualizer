@@ -23,8 +23,11 @@ export type HighwayPalette = {
 /** User-selectable theme; "system" resolves through the OS preference at runtime. */
 export type ThemeChoice = "system" | "light" | "dark";
 
-/** Dark palette. */
-export const DARK_PALETTE: HighwayPalette = {
+/** Canvas background. */
+export const CANVAS_BG = "#0e0e16";
+
+/** Highway palette. */
+export const HIGHWAY_PALETTE: HighwayPalette = {
 	laneSeparator: 0x2a2a3a,
 	stageSeparator: 0x444458,
 	laneA: 0xe8e8f0,
@@ -40,23 +43,6 @@ export const DARK_PALETTE: HighwayPalette = {
 	fake: 0x9a9aac
 };
 
-/** Light palette. */
-export const LIGHT_PALETTE: HighwayPalette = {
-	laneSeparator: 0xc9c9d2,
-	stageSeparator: 0xa8a8b4,
-	laneA: 0x303040,
-	laneB: 0x2060a8,
-	laneSpecial: 0xa06818,
-	laneAFill: 0xe8e8ec,
-	laneBFill: 0xdfe8f4,
-	laneSpecialFill: 0xf0e6d2,
-	receptor: 0x18181b,
-	measureLine: 0x8a8a96,
-	beatLine: 0xd0d0d8,
-	mine: 0xc04040,
-	fake: 0x8c8c98
-};
-
 /** Darkens an RGB color by scaling each channel toward black; amount is clamped to [0, 1]. */
 export function darken(color: number, amount: number): number {
 	const k = 1 - Math.min(Math.max(amount, 0), 1);
@@ -66,12 +52,6 @@ export function darken(color: number, amount: number): number {
 
 	return (r << 16) | (g << 8) | b;
 }
-
-/** Per-theme bundle shared by the DOM side (baseBg = DaisyUI base-100) and the canvas. */
-export const THEMES: Record<"light" | "dark", { baseBg: string; highway: HighwayPalette }> = {
-	dark: { baseBg: "#0e0e16", highway: DARK_PALETTE },
-	light: { baseBg: "#f4f4f5", highway: LIGHT_PALETTE }
-};
 
 /** Maps a choice to a concrete theme; "system" defers to the OS preference. */
 export function resolveTheme(choice: ThemeChoice, systemDark: boolean): "light" | "dark" {

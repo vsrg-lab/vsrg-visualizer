@@ -66,7 +66,7 @@ export const useSettingsStore = create<SettingsState>()(
 		set => ({
 			theme: "system",
 			scrollMode: "original",
-			scrollSpeed: 0.4,
+			scrollSpeed: 0.75,
 			highwayScale: 1,
 			leftPanelOpen: true,
 			rightPanelOpen: true,

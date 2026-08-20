@@ -1,3 +1,4 @@
+import { FileUp } from "lucide-react";
 import { useRef, type DragEvent } from "react";
 
 type FileDropProps = {
@@ -21,9 +22,11 @@ export function FileDrop({ onFile }: FileDropProps) {
 				onDragOver={e => e.preventDefault()}
 				onDrop={onDrop}
 				onClick={() => inputRef.current?.click()}
-				className="border-2 border-dashed border-base-300 rounded-box p-4 text-center cursor-pointer text-base-content/70 hover:border-base-content/40"
+				className="rounded-box border-2 border-dashed border-base-300 p-3 text-center text-base-content/70 transition-colors cursor-pointer hover:border-base-content/40"
 			>
-				Drop a chart file (.urc, .osu, .qua, .sm/.ssc, .bms/.bme/.bml/.pms, .ojn) here, or click to choose
+				<FileUp size={20} className="mx-auto mb-1 opacity-60" />
+				<div className="text-sm">Drop a chart file here, or click to choose</div>
+				<div className="text-xs opacity-60">.urc · .osu · .qua · .sm/.ssc · .bms/.bme/.bml/.pms · .ojn</div>
 			</div>
 			<input
 				ref={inputRef}

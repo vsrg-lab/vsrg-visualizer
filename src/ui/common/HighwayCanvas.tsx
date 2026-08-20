@@ -1,5 +1,5 @@
 import { Application } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import { chartEndMs } from "../../engine/duration";
 import type { HighwaySize } from "../../hooks/useHighwaySize";
@@ -7,7 +7,7 @@ import type { Chart } from "../../model/types";
 import { Highway } from "../../render/highway";
 import { clock, usePlaybackStore } from "../../store/playback";
 import { useSettingsStore } from "../../store/settings";
-import { resolveTheme, THEMES } from "../../theme";
+import { CANVAS_BG, HIGHWAY_PALETTE } from "../../theme";
 
 /** Wheel travel converts to seek time at this rate; a ~100px notch seeks 0.5s. */
 const WHEEL_SEEK_MS_PER_PX = 5;
@@ -20,18 +20,6 @@ type HighwayCanvasProps = {
 /** Mounts a Pixi Application for the given chart and drives it from the shared Clock each frame. */
 export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 	const hostRef = useRef<HTMLDivElement>(null);
-	const theme = useSettingsStore(state => state.theme);
-	const [systemDark, setSystemDark] = useState(() => window.matchMedia("(prefers-color-scheme: dark)").matches);
-
-	useEffect(() => {
-		const media = window.matchMedia("(prefers-color-scheme: dark)");
-		const onChange = () => setSystemDark(media.matches);
-		media.addEventListener("change", onChange);
-
-		return () => media.removeEventListener("change", onChange);
-	}, []);
-
-	const themeEntry = THEMES[resolveTheme(theme, systemDark)];
 
 	useEffect(() => {
 		const host = hostRef.current;
@@ -44,7 +32,7 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 
 		void (async () => {
 			const created = new Application();
-			await created.init({ background: themeEntry.baseBg, resizeTo: host });
+			await created.init({ background: CANVAS_BG, resizeTo: host });
 			if (canceled) {
 				created.destroy(true, { children: true });
 				return;
@@ -59,7 +47,7 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 				laneWidth: size.laneWidth,
 				receptorY: size.receptorY,
 				height: size.height,
-				palette: themeEntry.highway
+				palette: HIGHWAY_PALETTE
 			});
 
 			app.ticker.add(() => highway?.render(clock.timeMs, useSettingsStore.getState().scrollSpeed));
@@ -73,7 +61,7 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 			}
 			highway = null;
 		};
-	}, [chart, size, themeEntry]);
+	}, [chart, size]);
 
 	useEffect(() => {
 		const host = hostRef.current;
@@ -96,5 +84,5 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 	}, [chart]);
 
 	const stageGap = chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
-	return <div ref={hostRef} className="h-full" style={{ width: size.highwayPx + stageGap }} />;
+	return <div ref={hostRef} className="h-full shrink-0" style={{ width: size.highwayPx + stageGap }} />;
 }

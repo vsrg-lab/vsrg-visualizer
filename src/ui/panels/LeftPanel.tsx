@@ -1,3 +1,4 @@
+import { PanelSection } from "./PanelSection";
 import { PANEL_PX } from "../../hooks/useHighwaySize";
 import { useChartStore } from "../../store/chart";
 import { ChartSelect } from "../common/ChartSelect";
@@ -12,11 +13,17 @@ export function LeftPanel() {
 
 	return (
 		<aside
-			className="shrink-0 h-full overflow-y-auto border-r border-base-content/10 p-2 space-y-2"
+			className="shrink-0 h-full overflow-y-auto border-r border-base-content/10 bg-base-200 p-2 space-y-3"
 			style={{ width: PANEL_PX }}
 		>
-			<FileDrop onFile={file => void load(file)} />
-			<ChartSelect charts={charts} selected={selected} onSelect={select} />
+			<PanelSection title="Chart file">
+				<FileDrop onFile={file => void load(file)} />
+			</PanelSection>
+			{charts.length > 1 && (
+				<PanelSection title="Difficulty">
+					<ChartSelect charts={charts} selected={selected} onSelect={select} />
+				</PanelSection>
+			)}
 		</aside>
 	);
 }

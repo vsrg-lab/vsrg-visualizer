@@ -1,13 +1,17 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
 import { chartEndMs } from "../../engine/duration";
-import { useHighwaySize } from "../../hooks/useHighwaySize";
+import { PANEL_PX, useHighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
 import { useSettingsStore } from "../../store/settings";
 import { HighwayCanvas } from "../common/HighwayCanvas";
 import { LeftPanel } from "../panels/LeftPanel";
 import { RightPanel } from "../panels/RightPanel";
 import { Transport } from "../transport/Transport";
+
+/** Cap for the whole app block. */
+const APP_MAX_PX = 1920;
 
 type AppShellProps = {
 	chart: Chart;
@@ -24,38 +28,43 @@ export function AppShell({ chart }: AppShellProps) {
 	const rightPanelOpen = useSettingsStore(state => state.rightPanelOpen);
 	const togglePanel = useSettingsStore(state => state.togglePanel);
 
+	const stageGap = size && chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
+	const clusterWidth = size
+		? (size.effectiveLeft ? PANEL_PX : 0) + size.highwayPx + stageGap + (size.effectiveRight ? PANEL_PX : 0)
+		: undefined;
+
 	return (
-		<div className="flex flex-col h-screen bg-base-100 text-base-content font-sans">
-			<div ref={mainRef} className="flex flex-1 min-h-0">
-				{size?.effectiveLeft && <LeftPanel />}
-				{!size?.effectiveRight && !leftPanelOpen && (
-					<button
-						type="button"
-						className="btn btn-ghost btn-xs self-start m-1"
-						onClick={() => togglePanel("left")}
-						title="Open left panel"
-					>
-						⟨
-					</button>
-				)}
+		<div className="flex h-screen justify-center bg-base-300 text-base-content font-sans">
+			<div className="flex h-full w-full flex-col bg-base-100" style={{ maxWidth: APP_MAX_PX }}>
+				<div ref={mainRef} className="flex w-full flex-1 min-h-0 justify-center">
+					{!size?.effectiveLeft && !leftPanelOpen && (
+						<button
+							type="button"
+							className="btn btn-ghost btn-xs self-start m-1 shrink-0"
+							onClick={() => togglePanel("left")}
+							title="Open left panel"
+						>
+							<ChevronLeft size={14} />
+						</button>
+					)}
+					{size?.effectiveLeft && <LeftPanel />}
 
-				<div className="flex-1 min-h-0 flex justify-center">
 					{size && <HighwayCanvas chart={chart} size={size} />}
-				</div>
 
-				{size?.effectiveRight && <RightPanel chart={chart} />}
-				{!size?.effectiveLeft && !rightPanelOpen && (
-					<button
-						type="button"
-						className="btn btn-ghost btn-xs self-start m-1"
-						onClick={() => togglePanel("right")}
-						title="Open right panel"
-					>
-						⟩
-					</button>
-				)}
+					{size?.effectiveRight && <RightPanel chart={chart} />}
+					{!size?.effectiveLeft && !rightPanelOpen && (
+						<button
+							type="button"
+							className="btn btn-ghost btn-xs self-start m-1 shrink-0"
+							onClick={() => togglePanel("right")}
+							title="Open right panel"
+						>
+							<ChevronRight size={14} />
+						</button>
+					)}
+				</div>
+				<Transport durationMs={chartEndMs(chart)} width={clusterWidth} />
 			</div>
-			<Transport durationMs={chartEndMs(chart)}/>
 		</div>
 	);
 }

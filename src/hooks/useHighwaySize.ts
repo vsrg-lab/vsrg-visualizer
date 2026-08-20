@@ -8,7 +8,7 @@ export const HIGHWAY_BASE_PX = 460;
 /** Per-lane cap - binds only at 3 keys or fewer (460 / 4 = 115). */
 export const LANE_WIDTH_MAX = 120;
 /** Width one open side panel occupies. */
-export const PANEL_PX = 260;
+export const PANEL_PX = 320;
 /** Gap between the receptor line and the bottom edge of the canvas. */
 const RECEPTOR_OFFSET_PX = 90;
 
