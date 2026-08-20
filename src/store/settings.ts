@@ -27,7 +27,6 @@ type SettingsState = {
 	bumpScrollSpeed: (delta: number) => void;
 	/** Absolute set for the range input; clamped like bump. */
 	setScrollSpeed: (value: number) => void;
-	setHighwayScale: (value: number) => void;
 	togglePanel: (side: PanelSide) => void;
 };
 
@@ -74,7 +73,6 @@ export const useSettingsStore = create<SettingsState>()(
 			setScrollMode: scrollMode => set({ scrollMode }),
 			bumpScrollSpeed: delta => set(state => ({ scrollSpeed: clampSpeed(state.scrollSpeed + delta) })),
 			setScrollSpeed: value => set({ scrollSpeed: clampSpeed(value) }),
-			setHighwayScale: value => set({ highwayScale: clamp(value, HIGHWAY_SCALE_MIN, HIGHWAY_SCALE_MAX) }),
 			togglePanel: side => set(state => side === "left"
 				? { leftPanelOpen: !state.leftPanelOpen }
 				: { rightPanelOpen: !state.rightPanelOpen })

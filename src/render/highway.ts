@@ -13,7 +13,7 @@ export type HighwayOptions = {
 	laneWidth: number;
 	receptorY: number;
 	height: number;
-	palette?: HighwayPalette;
+	palette: HighwayPalette;
 };
 
 /** Multiplier floor for the visibility window. */
@@ -43,7 +43,7 @@ export class Highway {
 	constructor(stage: Container, chart: Chart, opts: HighwayOptions) {
 		this.chart = chart;
 		this.opts = opts;
-		this.palette = opts.palette ?? HIGHWAY_PALETTE;
+		this.palette = opts.palette;
 		this.scroll = buildScrollModel(chart.timing);
 		this.beats = chart.beatLines;
 		this.geo = highwayGeometry(opts.canvasWidth, opts.laneWidth, chart.layout);

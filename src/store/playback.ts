@@ -14,8 +14,6 @@ type PlaybackState = {
 	pause: () => void;
 	stop: () => void;
 	seek: (ms: number) => void;
-	/** Moves by a delta; clamps below zero (the song end is clamped by the caller). */
-	seekBy: (delta: number) => void;
 	setRate: (rate: number) => void;
 	/** Called by the rAF loop - mirrors the clock time into state. */
 	tick: () => void;
@@ -41,10 +39,6 @@ export const usePlaybackStore = create<PlaybackState>()(set => ({
 	},
 	seek: ms => {
 		clock.seek(Math.max(0, ms));
-		set({ timeMs: clock.timeMs });
-	},
-	seekBy: delta => {
-		clock.seek(Math.max(0, clock.timeMs + delta));
 		set({ timeMs: clock.timeMs });
 	},
 	setRate: rate => {

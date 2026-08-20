@@ -18,7 +18,6 @@ type ChartState = {
 	select: (index: number) => void;
 	/** Re-parse the loaded file with the same rng a fixed rng stayed deterministic. */
 	reroll: () => void;
-	clear: () => void;
 };
 
 /** The rng of the last load - reroll reueses it. */
@@ -63,9 +62,5 @@ export const useChartStore = create<ChartState>()((set, get) => ({
 
 		const result = loadChart(source.bytes, source.fileName, lastRng ? { rng: lastRng } : undefined);
 		set(applyLoad(result));
-	},
-	clear: () => {
-		lastRng = undefined;
-		set({ source: null, set: null, errors: [], selected: 0 });
 	}
 }));
