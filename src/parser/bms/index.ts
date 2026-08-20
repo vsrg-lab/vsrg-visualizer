@@ -1,4 +1,4 @@
-import { classifyChannel, detectLayout, laneOf, parseBase36Pair, readChannelLines, type ChannelLine } from "./channels";
+import { buildLaneMap, classifyChannel, detectLayout, parseBase36Pair, readChannelLines, type ChannelLine } from "./channels";
 import { decodeBms } from "./encoding";
 import { resolveBranches, type Rng } from "./preprocess";
 import type { ParseResult, SourceChart, SourceNote, TimingEvent } from "../../model/source";
@@ -13,7 +13,7 @@ const RAMP_SAMPLES_PER_BEAT = 8;
 const MAX_RAMP_SAMPLES = 64;
 
 /** A placed object before lanes are known: channel, beat, id, and source position. */
-type RawObject = { channel: string; at: number; id: number; line: number;  sequence: number };
+type RawObject = { channel: string; at: number; id: number; line: number; sequence: number };
 
 /** A scroll/speed keyframe after its #SCROLLxx/#SPEEDxx definition was resolved. */
 type SvEntry = { at: number; multiplier: number };
@@ -69,16 +69,6 @@ function toBase36Id(id: number): string {
 	return id.toString(36).toUpperCase().padStart(2, "0");
 }
 
-/** Step-function lookup on a sorted keyframe list, defaulting to 1. */
-function valueAt(entries: SvEntry[], at: number): number {
-	let value = 1;
-	for (const entry of entries)
-		if (entry.at <= at)
-			value = entry.multiplier;
-
-	return value;
-}
-
 /** Samples the piecewise-linear speed ramp between consecutive keyframes. */
 function speedSamples(speeds: SvEntry[]): SvEntry[] {
 	const samples: SvEntry[] = [];
@@ -107,13 +97,22 @@ function buildSvEvents(scrolls: SvEntry[], speeds: SvEntry[]): TimingEvent[] {
 	if (scrolls.length === 0 && speeds.length === 0)
 		return [];
 
-	const sampled = [...speeds, ...speedSamples(speeds)];
+	// Keyframes and their samples interleave, so the concatenation has to be re-sorted before a step lookup means anything.
+	const sampled = [...speeds, ...speedSamples(speeds)].sort((a, b) => a.at - b.at);
 	const breakpoints = [...new Set([...scrolls, ...sampled].map(entry => entry.at))].sort((a, b) => a - b);
 	const events: TimingEvent[] = [];
 
+	let scrollIndex = -1;
+	let sampleIndex = -1;
 	let previous = 1;
+
 	for (const at of breakpoints) {
-		const multiplier = valueAt(scrolls, at) * valueAt(sampled, at);
+		while (scrollIndex + 1 < scrolls.length && scrolls[scrollIndex + 1]!.at <= at)
+			scrollIndex++;
+		while (sampleIndex + 1 < sampled.length && sampled[sampleIndex + 1]!.at <= at)
+			sampleIndex++;
+
+		const multiplier = (scrollIndex < 0 ? 1 : scrolls[scrollIndex]!.multiplier) * (sampleIndex < 0 ? 1 : sampled[sampleIndex]!.multiplier);
 		if (multiplier !== previous) {
 			events.push({ kind: "sv", at, multiplier });
 			previous = multiplier;
@@ -221,6 +220,8 @@ export function parseBms(bytes: ArrayBuffer, rng: Rng, isPms: boolean): ParseRes
 	}
 
 	const layout = detectLayout(usedChannels, isPms);
+	const laneMap = buildLaneMap(layout);
+	const laneOf = (channel: string): number | null => laneMap.get(channel.toUpperCase()) ?? null;
 	objects.sort((a, b) => a.at - b.at || a.sequence - b.sequence);
 
 	const notes: SourceNote[] = [];
@@ -238,7 +239,7 @@ export function parseBms(bytes: ArrayBuffer, rng: Rng, isPms: boolean): ParseRes
 	for (const object of objects)
 		switch (classifyChannel(object.channel)) {
 			case "note": {
-				const lane = laneOf(object.channel, layout);
+				const lane = laneOf(object.channel);
 				if (lane === null) {
 					warnOnce(warnedChannels, warnings, object.channel, `channel ${object.channel} has no lane in the decided layout; object dropped`);
 					break;
@@ -257,13 +258,13 @@ export function parseBms(bytes: ArrayBuffer, rng: Rng, isPms: boolean): ParseRes
 				break;
 			}
 			case "mine": {
-				const lane = laneOf(object.channel, layout);
+				const lane = laneOf(object.channel);
 				if (lane !== null)
 					notes.push({ kind: "mine", at: object.at, lane });
 				break;
 			}
 			case "ln": {
-				const lane = laneOf(object.channel, layout);
+				const lane = laneOf(object.channel);
 				if (lane === null)
 					break;
 				if (!lnActive) {
@@ -320,7 +321,6 @@ export function parseBms(bytes: ArrayBuffer, rng: Rng, isPms: boolean): ParseRes
 	for (const object of objects)
 		if (classifyChannel(object.channel) === "unknown")
 			warnOnce(warnedChannels, warnings, object.channel, `unknown channel ${object.channel}; objects ignored`);
-
 
 	for (const [lane, queue] of lnQueues) {
 		for (let i = 0; i + 1 < queue.length; i += 2)

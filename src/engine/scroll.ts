@@ -1,13 +1,22 @@
 import type { TimingPoint } from "../model/types";
 
-/** Maps chart time (ms) to a cumulative scroll position (scroll-units) with SV applid. */
+/** Maps chart time (ms) to a cumulative scroll position (scroll-units) with SV applied. */
 export type ScrollModel = { positionAt(timeMs: number): number };
 
+/** Index of the timing point active at timeMs; a time before the first point resolves to it. */
 function segmentIndexAt(timing: TimingPoint[], timeMs: number): number {
-	let i = 0;
-	while (i + 1 <timing.length && timing[i + 1].timeMs <= timeMs)
-		i++;
-	return i;
+	let lo = 0;
+	let hi = timing.length - 1;
+
+	while (lo < hi) {
+		const mid = (lo + hi + 1) >> 1;
+		if (timing[mid].timeMs <= timeMs)
+			lo = mid;
+		else
+			hi = mid - 1;
+	}
+
+	return lo;
 }
 
 /**

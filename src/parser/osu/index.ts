@@ -51,7 +51,7 @@ function parseTimingPoints(lines: string[], warnings: Warning[]): TimingEvent[] 
 		const at = Number(fields[0]);
 		const beatLength = Number(fields[1]);
 		const beats = fields.length > 2 ? Number(fields[2]) : 4;
-		const uninherited = fields.length > 6 ? fields[6] != "0" : beatLength > 0;
+		const uninherited = fields.length > 6 ? fields[6] !== "0" : beatLength > 0;
 
 		if (!Number.isFinite(at) || !Number.isFinite(beatLength) || beatLength === 0) {
 			warnings.push({
@@ -194,5 +194,5 @@ export function parseOsu(text: string): ParseResult {
 
 	const source: SourceChart = { metadata, layout, timeAxis: "ms", bpmAffectsScroll: true, events, notes };
 
-	return { ok: true, sources:[source], warnings };
+	return { ok: true, sources: [source], warnings };
 }

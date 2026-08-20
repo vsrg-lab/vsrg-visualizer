@@ -4,11 +4,11 @@ import type { ParseError } from "../../model/types";
 export type Line = { lineNo: number; text: string };
 
 /** A parsed '@'-section header plus its entry lines. */
-export type Section = { name: string; headerLine: number; entries: Line[] };
+export type Section = { name: string; entries: Line[] };
 
 /** Result of splitting raw URC text into ordered sections. */
 export type SplitResult =
-	| { ok: true; version: string; sections: Map<string, Section> }
+	| { ok: true; sections: Map<string, Section> }
 	| { ok: false; errors: ParseError[] };
 
 const REQUIRED_ORDER = ["Metadata", "Layout", "Timing", "Notes"] as const;
@@ -44,7 +44,7 @@ export function splitSections(text: string): SplitResult {
 			if (!KNOWN_SECTIONS.has(name))
 				errors.push({ line: lineNo, message: `unknown section @${name}` });
 
-			current = { name, headerLine: lineNo, entries: [] };
+			current = { name, entries: [] };
 			sections.set(name, current);
 			order.push(name);
 			continue;
@@ -66,7 +66,6 @@ export function splitSections(text: string): SplitResult {
 		if (!sections.has(name))
 			errors.push({ line: 1, message: `missing required section @${name}` });
 
-
 	const seen = order.filter(n => (REQUIRED_ORDER as readonly string[]).includes(n));
 	const expected = REQUIRED_ORDER.filter(n => seen.includes(n));
 	if (seen.join(",") !== expected.join(","))
@@ -75,5 +74,5 @@ export function splitSections(text: string): SplitResult {
 	if (errors.length > 0)
 		return { ok: false, errors };
 
-	return { ok: true, version, sections };
+	return { ok: true, sections };
 }

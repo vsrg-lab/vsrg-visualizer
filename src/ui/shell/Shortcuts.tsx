@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 
-import { chartEndMs } from "../../engine/duration";
-import type { Chart } from "../../model/types";
 import { useChartStore } from "../../store/chart";
 import { usePlaybackStore } from "../../store/playback";
 import { useSettingsStore } from "../../store/settings";
-import { nextTheme, resolveTheme } from "../../theme";
+import { toggleTheme } from "../../theme";
 
 /** Help overlay rows; keep in sync with the switch below. */
 const SHORTCUTS: [string, string][] = [
@@ -21,14 +19,15 @@ const SHORTCUTS: [string, string][] = [
 ];
 
 type ShortcutsProps = {
-	chart: Chart | null;
+	/** null while no chart is loaded - the seek keys stay inert until one is. */
+	endMs: number | null;
 };
 
 /**
  * Global keyboard shortcuts with a help overlay. Keys typed into a field are ignored,
  * and while the overlay is open Esc only closes it - playback stop waits.
  */
-export function Shortcuts({ chart }: ShortcutsProps) {
+export function Shortcuts({ endMs }: ShortcutsProps) {
 	const [helpOpen, setHelpOpen] = useState(false);
 
 	useEffect(() => {
@@ -70,8 +69,11 @@ export function Shortcuts({ chart }: ShortcutsProps) {
 				case "ArrowLeft":
 				case "ArrowRight": {
 					event.preventDefault();
+					if (endMs === null)
+						break;
+
 					const step = (event.shiftKey ? 1000 : 5000) * (key === "ArrowLeft" ? -1 : 1);
-					playback.seek(Math.min(Math.max(playback.timeMs + step, 0), chartEndMs(chart!)));
+					playback.seek(Math.min(Math.max(playback.timeMs + step, 0), endMs));
 					break;
 				}
 				case "ArrowUp":
@@ -92,8 +94,7 @@ export function Shortcuts({ chart }: ShortcutsProps) {
 					settings.setScrollMode(settings.scrollMode === "original" ? "noSv" : "original");
 					break;
 				case "t": {
-					const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-					settings.setTheme(nextTheme(resolveTheme(settings.theme, systemDark)));
+					settings.setTheme(toggleTheme(settings.theme));
 					break;
 				}
 				case "1":
@@ -111,7 +112,7 @@ export function Shortcuts({ chart }: ShortcutsProps) {
 
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
-	}, [chart, helpOpen]);
+	}, [endMs, helpOpen]);
 
 	if (!helpOpen)
 		return null;

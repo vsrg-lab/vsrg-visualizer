@@ -19,7 +19,7 @@ function rows(value: unknown): QuaRow[] {
 		: [];
 }
 
-/** Quaver states its mode as KeysN; the scratch key, when present, sits above the noraml lanes. */
+/** Quaver states its mode as KeysN; the scratch key, when present, sits above the normal lanes. */
 function buildLayout(mode: unknown, hasScratch: boolean): Layout | null {
 	const match = /^Keys(\d+)$/.exec(text(mode));
 	if (!match)
@@ -68,7 +68,7 @@ function buildNotes(document: QuaRow, totalKeys: number, warnings: Warning[]): S
 		if (rawLane !== lane)
 			warnings.push({
 				code: "lane-clamped",
-				message: `hit object lane ${rawLane + 1} clamped to ${lane}`
+				message: `hit object lane ${rawLane + 1} clamped to ${lane + 1}`
 			});
 
 		const end = num(object.EndTime, 0);

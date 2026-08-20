@@ -5,7 +5,7 @@ type FileDropProps = {
 	onFile: (file: File) => void;
 };
 
-/** File picker + drag-drop zone. Parsing lives in App so the raw bytes stay available for re-parsing. */
+/** File picker + drag-drop zone. Parsing lives in the chart so the raw bytes stay available for re-parsing. */
 export function FileDrop({ onFile }: FileDropProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
 

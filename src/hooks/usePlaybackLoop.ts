@@ -1,28 +1,28 @@
 import { useEffect, useRef } from "react";
 
-import { chartEndMs } from "../engine/duration";
-import type { Chart } from "../model/types";
-import { usePlaybackStore } from "../store/playback";
+import { clock, usePlaybackStore } from "../store/playback";
 
 /**
  * rAF loop that calls the playback store tick() and stops at the song end.
- * The chart end is derived from the current chart - null means no playback.
+ * While the clock is paused nothing is mirrored - the store already holds the paused time.
+ * endMs is null when no chart is loaded, which stops the loop entirely.
  */
-export function usePlaybackLoop(chart: Chart | null): void {
+export function usePlaybackLoop(endMs: number | null): void {
 	const rafRef = useRef<number>(0);
 
 	useEffect(() => {
-		if (!chart)
+		if (endMs === null)
 			return;
 
-		const endMs = chartEndMs(chart);
 		const loop = () => {
-			usePlaybackStore.getState().tick();
+			if (clock.playing) {
+				usePlaybackStore.getState().tick();
 
-			const { playing, timeMs, seek, pause } = usePlaybackStore.getState();
-			if (playing && timeMs >= endMs) {
-				seek(endMs);
-				pause();
+				const { timeMs, seek, pause } = usePlaybackStore.getState();
+				if (timeMs >= endMs) {
+					seek(endMs);
+					pause();
+				}
 			}
 
 			rafRef.current = requestAnimationFrame(loop);
@@ -31,5 +31,5 @@ export function usePlaybackLoop(chart: Chart | null): void {
 		rafRef.current = requestAnimationFrame(loop);
 
 		return () => cancelAnimationFrame(rafRef.current);
-	}, [chart]);
+	}, [endMs]);
 }

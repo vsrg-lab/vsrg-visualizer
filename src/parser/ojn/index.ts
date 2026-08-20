@@ -30,37 +30,38 @@ export function parseOjn(bytes: ArrayBuffer): ParseResult {
 		return { ok: false, errors: [header.error] };
 
 	const warnings: Warning[] = [...header.warnings];
+	const fields = header.header;
 	const view = new DataView(bytes);
 	const sources: SourceChart[] = [];
 
 	for (let d = 0; d < 3; d++) {
-		if (header.header.noteCount[d] === 0)
+		if (fields.noteCount[d] === 0)
 			continue;
 
-		const start = header.header.noteOffset[d]!;
-		const next = d < 2 ? header.header.noteOffset[d + 1]! : header.header.coverOffset;
+		const start = fields.noteOffset[d]!;
+		const next = d < 2 ? fields.noteOffset[d + 1]! : fields.coverOffset;
 		const end = Math.min(next > start ? next : bytes.byteLength, bytes.byteLength);
 		const section = readNoteSection(view, start, end, warnings);
 
 		sources.push({
 			metadata: {
 				original: "O2Jam",
-				title: header.header.title,
-				artist: header.header.artist,
-				creator: header.header.noter,
-				version: versionOf(DIFFICULTY_NAMES[d]!, header.header.level[d]!)
+				title: fields.title,
+				artist: fields.artist,
+				creator: fields.noter,
+				version: versionOf(DIFFICULTY_NAMES[d]!, fields.level[d]!)
 			},
 			layout: { totalKeys: 7, normalKeys: 7, specialLanes: [], stages: 1 },
 			timeAxis: "beat",
 			bpmAffectsScroll: true,
-			events: [{ kind: "bpm", at: 0, bpm: header.header.bpm }, ...section.events],
+			events: [{ kind: "bpm", at: 0, bpm: fields.bpm }, ...section.events],
 			notes: section.notes
 		});
 
-		crossCheck(warnings, "packages", section.counts.packages, header.header.packageCount[d]!, d);
-		crossCheck(warnings, "events", section.counts.events, header.header.eventCount[d]!, d);
-		crossCheck(warnings, "notes", section.counts.notes, header.header.noteCount[d]!, d);
-		crossCheck(warnings, "measures", section.counts.measures, header.header.measureCount[d]!, d);
+		crossCheck(warnings, "packages", section.counts.packages, fields.packageCount[d]!, d);
+		crossCheck(warnings, "events", section.counts.events, fields.eventCount[d]!, d);
+		crossCheck(warnings, "notes", section.counts.notes, fields.noteCount[d]!, d);
+		crossCheck(warnings, "measures", section.counts.measures, fields.measureCount[d]!, d);
 	}
 
 	if (sources.length === 0)

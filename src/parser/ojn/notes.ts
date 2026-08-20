@@ -49,7 +49,7 @@ function measureFractions(packages: RawPackage[], warnings: Warning[]): (measure
 }
 
 /**
- * Walks one difficulty's pakcages between start and end. Channel 0 sets the measure fraction,
+ * Walks one difficulty's packages between start and end. Channel 0 sets the measure fraction,
  * channel 1 changes the bpm, channels 2-8 place notes; every other channel is read but ignored.
  * A section that runs out of bytes stops early with a warning.
  */
@@ -102,7 +102,7 @@ export function readNoteSection(
 	if (truncated || offset < end)
 		warnings.push({
 			code: "truncated-section",
-			message: `note section ended early at byte ${offset} (secion ends at ${end})`
+			message: `note section ended early at byte ${offset} (section ends at ${end})`
 		});
 
 	const fractionOf = measureFractions(packages, warnings);

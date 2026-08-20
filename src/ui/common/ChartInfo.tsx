@@ -12,7 +12,7 @@ export function ChartInfo({ chart }: ChartInfoProps) {
 	const timing = currentTiming(chart.timing, timeMs);
 
 	return (
-		<div className="space-y-0.5 rounded-box border-base-content/10 bg-base-300/40 p-2 text-sm">
+		<div className="space-y-0.5 rounded-box border border-base-content/10 bg-base-300/40 p-2 text-sm">
 			<span className="badge badge-sm badge-ghost">{chart.metadata.original}</span>
 			<span className="font-medium">{chart.metadata.title}</span>
 			<div className="pt-1 text-base-content/60">{chart.metadata.artist} [{chart.metadata.version}]</div>

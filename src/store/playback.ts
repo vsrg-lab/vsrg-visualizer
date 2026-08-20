@@ -30,7 +30,7 @@ export const usePlaybackStore = create<PlaybackState>()(set => ({
 	},
 	pause: () => {
 		clock.pause();
-		set({ playing: clock.playing });
+		set({ playing: clock.playing, timeMs: clock.timeMs });
 	},
 	stop: () => {
 		clock.pause();

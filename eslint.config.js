@@ -36,6 +36,11 @@ export default defineConfig([
       "curly": ["error", "multi"],
       "@stylistic/nonblock-statement-body-position": ["error", "below"],
       "@stylistic/arrow-parens": ["error", "as-needed"],
+      "@stylistic/space-infix-ops": "error",
+      "@stylistic/space-before-blocks": "error",
+      "@stylistic/object-curly-spacing": ["error", "always"],
+      "@stylistic/no-multiple-empty-lines": ["error", { max: 1 }],
+      "eqeqeq": ["error", "always"],
       "import-x/order": ["error", {
         groups: ["builtin", "external", "internal", ["parent", "sibling", "index"]],
         "newlines-between": "always",

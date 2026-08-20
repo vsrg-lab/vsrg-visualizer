@@ -1,9 +1,9 @@
 import { Application } from "pixi.js";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { chartEndMs } from "../../engine/duration";
 import type { HighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
+import { stageGapOf } from "../../render/geometry";
 import { Highway } from "../../render/highway";
 import { clock, usePlaybackStore } from "../../store/playback";
 import { useSettingsStore } from "../../store/settings";
@@ -15,60 +15,72 @@ const WHEEL_SEEK_MS_PER_PX = 5;
 type HighwayCanvasProps = {
 	chart: Chart;
 	size: HighwaySize;
+	endMs: number;
 };
 
 /** Mounts a Pixi Application for the given chart and drives it from the shared Clock each frame. */
-export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
+export function HighwayCanvas({ chart, size, endMs }: HighwayCanvasProps) {
 	const hostRef = useRef<HTMLDivElement>(null);
+	const highwayRef = useRef<Highway | null>(null);
+	const [app, setApp] = useState<Application | null>(null);
 
+	const stageGap = stageGapOf(size.laneWidth, chart.layout.stages);
+
+	// The Application outlives chart and size changes - rebuilding it would recreate the WebGL
+	// context on every resize frame. The ticker reads the current Highway through the ref.
 	useEffect(() => {
 		const host = hostRef.current;
 		if (!host)
 			return;
 
-		let app: Application | null = null;
-		let highway: Highway | null = null;
+		let created: Application | null = null;
 		let canceled = false;
 
 		void (async () => {
-			const created = new Application();
-			await created.init({ background: CANVAS_BG, resizeTo: host });
+			const instance = new Application();
+			await instance.init({ background: CANVAS_BG, resizeTo: host });
 			if (canceled) {
-				created.destroy(true, { children: true });
+				instance.destroy(true, { children: true });
 				return;
 			}
 
-			app = created;
-			host.appendChild(app.canvas);
-
-			const stageGap = chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
-			highway = new Highway(app.stage, chart, {
-				canvasWidth: size.highwayPx + stageGap,
-				laneWidth: size.laneWidth,
-				receptorY: size.receptorY,
-				height: size.height,
-				palette: HIGHWAY_PALETTE
-			});
-
-			app.ticker.add(() => highway?.render(clock.timeMs, useSettingsStore.getState().scrollSpeed));
+			created = instance;
+			host.appendChild(instance.canvas);
+			instance.ticker.add(() => highwayRef.current?.render(clock.timeMs, useSettingsStore.getState().scrollSpeed));
+			setApp(instance);
 		})();
 
 		return () => {
 			canceled = true;
-			if (app) {
-				app.destroy(true, { children: true });
-				app = null;
-			}
-			highway = null;
+			setApp(null);
+			created?.destroy(true, { children: true });
 		};
-	}, [chart, size]);
+	}, []);
+
+	useEffect(() => {
+		if (!app)
+			return;
+
+		const highway = new Highway(app.stage, chart, {
+			canvasWidth: size.highwayPx + stageGap,
+			laneWidth: size.laneWidth,
+			receptorY: size.receptorY,
+			height: size.height,
+			palette: HIGHWAY_PALETTE
+		});
+		highwayRef.current = highway;
+
+		return () => {
+			highwayRef.current = null;
+			highway.destroy();
+		};
+	}, [app, chart, size, stageGap]);
 
 	useEffect(() => {
 		const host = hostRef.current;
 		if (!host)
 			return;
 
-		const endMs = chartEndMs(chart);
 		const onWheel = (event: WheelEvent) => {
 			event.preventDefault();
 
@@ -81,8 +93,7 @@ export function HighwayCanvas({ chart, size }: HighwayCanvasProps) {
 
 		host.addEventListener("wheel", onWheel, { passive: false });
 		return () => host.removeEventListener("wheel", onWheel);
-	}, [chart]);
+	}, [endMs]);
 
-	const stageGap = chart.layout.stages === 2 ? size.laneWidth / 2 : 0;
 	return <div ref={hostRef} className="h-full shrink-0" style={{ width: size.highwayPx + stageGap }} />;
 }

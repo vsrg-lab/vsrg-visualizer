@@ -4,7 +4,7 @@ import type { Layout } from "../model/types";
 export type LaneRole = "a" | "b" | "special";
 
 /** Per-stage [start, end] lane spans; an odd double split gives the extra lane to the left stage. */
-export function stageRanges(layout: Layout): [number, number][] {
+function stageRanges(layout: Layout): [number, number][] {
 	if (layout.stages === 1)
 		return [[0, layout.totalKeys]];
 

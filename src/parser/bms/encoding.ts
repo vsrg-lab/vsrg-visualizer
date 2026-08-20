@@ -4,7 +4,7 @@ import type { Warning } from "../../model/types";
 type Decoded = { text: string; warnings: Warning[] };
 
 /**
- * Decodes BMS bytes. BMS files are overwhelmingly Shift-JIS but never ones may be UTF-8,
+ * Decodes BMS bytes. BMS files are overwhelmingly Shift-JIS but newer ones may be UTF-8,
  * so a BOM or a strict UTF-8 pass wins and only a hard failure falls back to Shift-JIS.
  */
 export function decodeBms(bytes: ArrayBuffer): Decoded {

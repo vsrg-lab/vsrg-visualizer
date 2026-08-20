@@ -11,6 +11,18 @@ function nums(csv: string): number[] {
 	return csv.split(",").map(s => Number(s.trim()));
 }
 
+/** Splits a `Key: Value` entry at its first colon; null when the line has no colon. */
+function splitEntry(entry: Line): { key: string; value: string } | null {
+	const colon = entry.text.indexOf(":");
+	if (colon < 0)
+		return null;
+
+	return {
+		key: entry.text.slice(0, colon).trim(),
+		value: entry.text.slice(colon + 1).trim()
+	};
+}
+
 /** URC states timing on the millisecond axis with an explicit multiplier, so each row becomes three events. */
 function toEvents(points: TimingPoint[]): TimingEvent[] {
 	const events: TimingEvent[] = [];
@@ -34,13 +46,16 @@ function parseMetadata(entries: Line[]): { value: Metadata | null; errors: Parse
 	const fields = new Map<string, string>();
 
 	for (const entry of entries) {
-		const idx = entry.text.indexOf(":");
-		if (idx < 0) {
-			errors.push({ line: entry.lineNo, message: `metadata line must be 'Key: Value': "${entry.text}"`});
+		const field = splitEntry(entry);
+		if (!field) {
+			errors.push({
+				line: entry.lineNo,
+				message: `metadata line missing colon: "${entry.text}"`
+			});
 			continue;
 		}
 
-		fields.set(entry.text.slice(0, idx).trim(), entry.text.slice(idx + 1).trim());
+		fields.set(field.key, field.value);
 	}
 
 	for (const key of REQUIRED_METADATA) {
@@ -73,9 +88,9 @@ function parseJudgment(entries: Line[]): { errors: ParseError[] } {
 	let rates: number[] | null = null;
 
 	for (const entry of entries) {
-		const idx = entry.text.indexOf(":");
-		const key = idx < 0 ? "" : entry.text.slice(0, idx).trim();
-		const rest = idx < 0 ? "": entry.text.slice(idx + 1).trim();
+		const field = splitEntry(entry);
+		const key = field?.key ?? "";
+		const rest = field?.value ?? "";
 
 		if (key === "Windows")
 			windows = nums(rest);
@@ -116,16 +131,19 @@ function parseLayout(entries: Line[]): { value: Layout | null; errors: ParseErro
 	let specialText: string | null = null;
 
 	for (const entry of entries) {
-		const idx = entry.text.indexOf(":");
-		const key = idx < 0 ? "" : entry.text.slice(0, idx).trim();
-		const rest = idx < 0 ? "" : entry.text.slice(idx + 1).trim();
+		const field = splitEntry(entry);
+		const key = field?.key ?? "";
+		const rest = field?.value ?? "";
 
 		if (key === "Type")
 			typeText = rest;
 		else if (key === "Special")
 			specialText = rest;
 		else
-			errors.push({ line: entry.lineNo, message: `unexpected layout line "${entry.text}"`});
+			errors.push({
+				line: entry.lineNo,
+				message: `unexpected layout line "${entry.text}"`
+			});
 	}
 
 	if (typeText === null) {

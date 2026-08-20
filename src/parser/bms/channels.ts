@@ -146,9 +146,8 @@ function modeOf(layout: Layout): Mode {
 	}
 }
 
-
-/** 0-based lane for a note/ln/mine channel under the decided layout; null for anything else. */
-export function laneOf(channel: string, layout: Layout): number | null {
+/** Channel-to-lane table for the decided layout, built once per file and then queried per object. */
+export function buildLaneMap(layout: Layout): Map<string, number> {
 	const mode = modeOf(layout);
 	const lanes = new Map<string, number>();
 	const scratch1p = layout.specialLanes.includes(0);
@@ -190,5 +189,5 @@ export function laneOf(channel: string, layout: Layout): number | null {
 		}
 	}
 
-	return lanes.get(channel.toUpperCase()) ?? null;
+	return lanes;
 }

@@ -4,9 +4,6 @@ export type ParseError = { line: number; message: string };
 /** A non-fatal problem found while parsing or compiling. Collected, never thrown. */
 export type Warning = { line?: number; code: string;  message: string };
 
-/** Kind of a note event. Holds carry a start/end pair; the rest are point events. */
-export type NoteKind = "tap" | "mine" | "fake" | "hold";
-
 /** A single playable note. Holds use startMs/endMs; point notes use timeMs. */
 export type Note =
 	| { kind: "tap" | "mine" | "fake"; timeMs: number; lane: number }

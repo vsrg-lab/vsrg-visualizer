@@ -16,11 +16,11 @@ type ChartState = {
 
 	load: (file: File, rng?: Rng) => Promise<void>;
 	select: (index: number) => void;
-	/** Re-parse the loaded file with the same rng a fixed rng stayed deterministic. */
+	/** Re-parses the loaded file, reusing the rng of the last load so a fixed rng stays deterministic. */
 	reroll: () => void;
 };
 
-/** The rng of the last load - reroll reueses it. */
+/** The rng of the last load - reroll reuses it. */
 let lastRng: Rng | undefined;
 
 function applyLoad(result: ReturnType<typeof loadChart>): Partial<ChartState> {
@@ -41,10 +41,7 @@ export const useChartStore = create<ChartState>()((set, get) => ({
 		usePlaybackStore.getState().stop();
 
 		const result = loadChart(bytes, file.name, rng ? { rng } : undefined);
-		if (result.ok)
-			set({ source: { bytes, fileName: file.name }, set: result.set, errors: [], selected: 0 });
-		else
-			set({ source: null, set: null, errors: result.errors, selected: 0 });
+		set({ ...applyLoad(result), source: result.ok ? { bytes, fileName: file.name } : null });
 	},
 	select: index => {
 		const charts = get().set?.charts;

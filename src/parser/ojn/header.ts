@@ -2,7 +2,6 @@ import type { ParseError, Warning } from "../../model/types";
 
 /** The decoded 300-byte OJN header. Strings are NUL-trimmed and charset-decoded. */
 export type OjnHeader = {
-	encodeVersion: number;
 	bpm: number;
 	level: [number, number, number];
 	eventCount: [number, number, number];
@@ -12,7 +11,6 @@ export type OjnHeader = {
 	title: string;
 	artist: string;
 	noter: string;
-	duration: [number, number, number];
 	noteOffset: [number, number, number];
 	coverOffset: number;
 };
@@ -84,7 +82,6 @@ export function readHeader(bytes: ArrayBuffer): HeaderRead {
 		ok: true,
 		warnings,
 		header: {
-			encodeVersion,
 			bpm: view.getFloat32(0x10, true),
 			level: [view.getInt16(0x14, true), view.getInt16(0x16, true), view.getInt16(0x18, true)],
 			eventCount: readTriple(view, 0x1C),
@@ -94,7 +91,6 @@ export function readHeader(bytes: ArrayBuffer): HeaderRead {
 			title: readString(view, 0x6C, 64, "title", warnings),
 			artist: readString(view, 0xAC, 32, "artist", warnings),
 			noter: readString(view, 0xCC, 32, "noter", warnings),
-			duration: readTriple(view, 0x110),
 			noteOffset: readTriple(view, 0x11C),
 			coverOffset: view.getInt32(0x128, true)
 		}

@@ -1,4 +1,5 @@
 import { generateBeatLines, type BeatSegment } from "./beats";
+import { noteEndMs, noteStartMs } from "./noteTime";
 import type { Duration, SourceChart, TimingEvent } from "../model/source";
 import type { BeatLine, Chart, Meter, Note, TimingPoint, Warning } from "../model/types";
 
@@ -51,10 +52,6 @@ function computeBaseBpm(points: RawPoint[], endMs: number): number {
 			best = bpm;
 
 	return best;
-}
-
-function noteEnd(note: Note): number {
-	return note.kind === "hold" ? note.endMs : note.timeMs;
 }
 
 /** A half-open span of beats that elapses in zero time. */
@@ -158,7 +155,6 @@ function normalizeTiming(timing: TimingPoint[]): TimingPoint[] {
 			deduped[deduped.length - 1] = point;
 		else
 			deduped.push(point);
-
 
 	if (deduped.length === 0)
 		return [{ timeMs: 0, bpm: DEFAULT_BPM, meter: DEFAULT_METER, multiplier: 1 }];
@@ -269,11 +265,11 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 			message: `${warpedNotes} note(s) inside a warp became fake`
 		});
 
-	notes.sort((a, b) => (a.kind === "hold" ? a.startMs : a.timeMs) - (b.kind === "hold" ? b.startMs : b.timeMs));
+	notes.sort((a, b) => noteStartMs(a) - noteStartMs(b));
 
 	let endMs = 0;
 	for (const note of notes)
-		endMs = Math.max(endMs, noteEnd(note));
+		endMs = Math.max(endMs, noteEndMs(note));
 
 	const baseBpm = computeBaseBpm(points, endMs);
 	const timing: TimingPoint[] = points.map(point => ({
@@ -288,7 +284,7 @@ export function compileChart(source: SourceChart): { chart: Chart; warnings: War
 		minMs = Math.min(minMs, point.timeMs);
 
 	for (const note of notes)
-		minMs = Math.min(minMs, note.kind === "hold" ? note.startMs : note.timeMs);
+		minMs = Math.min(minMs, noteStartMs(note));
 
 	const shift = minMs < 0 ? -minMs : 0;
 	let shiftedTiming = timing;

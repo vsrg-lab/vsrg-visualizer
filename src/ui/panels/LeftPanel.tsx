@@ -1,5 +1,5 @@
+import { PanelFrame } from "./PanelFrame";
 import { PanelSection } from "./PanelSection";
-import { PANEL_PX } from "../../hooks/useHighwaySize";
 import { useChartStore } from "../../store/chart";
 import { ChartSelect } from "../common/ChartSelect";
 import { FileDrop } from "../common/FileDrop";
@@ -12,20 +12,16 @@ export function LeftPanel() {
 	const select = useChartStore(state => state.select);
 
 	return (
-		<aside
-			className="shrink-0 h-full overflow-y-auto border-r border-base-content/10 bg-base-200 p-2"
-			style={{ width: PANEL_PX }}
-		>
-			<div className="flex min-h-full flex-col justify-center space-y-3">
-				<PanelSection title="Chart file">
-					<FileDrop onFile={file => void load(file)} />
+		<PanelFrame side="left">
+			<PanelSection title="Chart file">
+				<FileDrop onFile={file => void load(file)} />
+			</PanelSection>
+
+			{charts.length > 1 && (
+				<PanelSection title="Difficulty">
+					<ChartSelect charts={charts} selected={selected} onSelect={select} />
 				</PanelSection>
-				{charts.length > 1 && (
-					<PanelSection title="Difficulty">
-						<ChartSelect charts={charts} selected={selected} onSelect={select} />
-					</PanelSection>
-				)}
-			</div>
-		</aside>
+			)}
+		</PanelFrame>
 	);
 }

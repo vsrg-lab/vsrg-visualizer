@@ -1,7 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
-import { chartEndMs } from "../../engine/duration";
 import { useHighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
 import { useSettingsStore } from "../../store/settings";
@@ -15,13 +14,14 @@ const APP_MAX_PX = 1920;
 
 type AppShellProps = {
 	chart: Chart;
+	endMs: number;
 };
 
 /**
  * Three-pane frame around the highway. The main row is the layout measuring element:
  * its width spans the side panels, its height is the canvas area.
  */
-export function AppShell({ chart }: AppShellProps) {
+export function AppShell({ chart, endMs }: AppShellProps) {
 	const mainRef = useRef<HTMLDivElement>(null);
 	const size = useHighwaySize(mainRef, chart);
 	const leftPanelOpen = useSettingsStore(state => state.leftPanelOpen);
@@ -45,11 +45,11 @@ export function AppShell({ chart }: AppShellProps) {
 					{size?.effectiveLeft && <LeftPanel />}
 
 					<div className="flex min-h-0 flex-1 justify-center">
-						{size && <HighwayCanvas chart={chart} size={size} />}
+						{size && <HighwayCanvas chart={chart} size={size} endMs={endMs} />}
 					</div>
 
 					{size?.effectiveRight && <RightPanel chart={chart} />}
-					{!size?.effectiveLeft && !rightPanelOpen && (
+					{!size?.effectiveRight && !rightPanelOpen && (
 						<button
 							type="button"
 							className="btn btn-ghost btn-xs self-center m-1 shrink-0"
@@ -60,7 +60,7 @@ export function AppShell({ chart }: AppShellProps) {
 						</button>
 					)}
 				</div>
-				<Transport durationMs={chartEndMs(chart)} />
+				<Transport durationMs={endMs} />
 			</div>
 		</div>
 	);

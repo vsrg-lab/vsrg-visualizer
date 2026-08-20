@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, type RefObject } from "react";
 import type { Chart } from "../model/types";
 import { useSettingsStore } from "../store/settings";
 
-/** Base width of a single-stage highway, before the user scale. */
+/** Base width of a single-stage highway. */
 const HIGHWAY_BASE_PX = 460;
 /** Per-lane cap - binds only at 3 keys or fewer (460 / 4 = 115). */
 const LANE_WIDTH_MAX = 120;
@@ -29,11 +29,10 @@ function computeHighwayLayout(
 	viewportW: number,
 	totalKeys: number,
 	stages: 1 | 2,
-	scale: number,
 	leftOpen: boolean,
 	rightOpen: boolean
 ): HighwayLayout {
-	const target = HIGHWAY_BASE_PX * scale * (stages === 2 ? 2 : 1);
+	const target = HIGHWAY_BASE_PX * (stages === 2 ? 2 : 1);
 
 	let available = viewportW - (leftOpen ? PANEL_PX : 0) - (rightOpen ? PANEL_PX : 0);
 	let effectiveLeft = leftOpen;
@@ -71,7 +70,6 @@ export function useHighwaySize(
 ): HighwaySize | null {
 	const [box, setBox] = useState<{ width: number; height: number } | null>(null);
 
-	const highwayScale = useSettingsStore(state => state.highwayScale);
 	const leftPanelOpen = useSettingsStore(state => state.leftPanelOpen);
 	const rightPanelOpen = useSettingsStore(state => state.rightPanelOpen);
 
@@ -99,11 +97,10 @@ export function useHighwaySize(
 			box.width,
 			chart.layout.totalKeys,
 			chart.layout.stages,
-			highwayScale,
 			leftPanelOpen,
 			rightPanelOpen
 		);
 
 		return { ...layout, receptorY: box.height - RECEPTOR_OFFSET_PX, height: box.height };
-	}, [box, chart, highwayScale, leftPanelOpen, rightPanelOpen]);
+	}, [box, chart, leftPanelOpen, rightPanelOpen]);
 }

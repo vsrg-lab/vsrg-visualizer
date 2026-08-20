@@ -9,7 +9,7 @@ import { compileChart } from "../engine/compile";
 import type { ParseResult } from "../model/source";
 import type { Chart, LoadResult, SourceFormat, Warning } from "../model/types";
 
-/** Options for loadChart; rng seeds #RANDOM/#SWITCH brancehs in BMS. */
+/** Options for loadChart; rng seeds #RANDOM/#SWITCH branches in BMS. */
 export type LoadOptions = { rng?: Rng };
 
 const defaultRng: Rng = max => 1 + Math.floor(Math.random() * max);

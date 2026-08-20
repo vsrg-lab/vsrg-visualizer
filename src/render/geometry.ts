@@ -1,3 +1,4 @@
+import { noteStartMs } from "../engine/noteTime";
 import type { Layout, Note } from "../model/types";
 
 /** Horizontal geometry of the highway after centering and the double-stage gap. */
@@ -14,14 +15,14 @@ export type HighwayGeometry = {
 	totalWidth: number;
 };
 
-/** Head time of a note - the key the compiler sorts notes by. */
-function noteStart(note: Note): number {
-	return note.kind === "hold" ? note.startMs : note.timeMs;
+/** Gap inserted between the two stages of a double-play chart; 0 for a single stage. */
+export function stageGapOf(laneWidth: number, stages: 1 | 2): number {
+	return stages === 2 ? laneWidth / 2 : 0;
 }
 
 /** Computes centered highway geometry; the doubled-stage gap is half a lane width. */
 export function highwayGeometry(canvasWidth: number, laneWidth: number, layout: Layout): HighwayGeometry {
-	const stageGap = layout.stages === 2 ? laneWidth / 2 : 0;
+	const stageGap = stageGapOf(laneWidth, layout.stages);
 
 	return {
 		originX: (canvasWidth - (layout.totalKeys * laneWidth + stageGap)) / 2,
@@ -44,7 +45,7 @@ function firstIndex(notes: Note[], timeMs: number): number {
 
 	while (lo < hi) {
 		const mid = (lo + hi) >> 1;
-		if (noteStart(notes[mid]) < timeMs)
+		if (noteStartMs(notes[mid]) < timeMs)
 			lo = mid + 1;
 		else
 			hi = mid;

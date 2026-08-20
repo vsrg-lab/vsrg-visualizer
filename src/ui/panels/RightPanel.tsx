@@ -1,5 +1,5 @@
+import { PanelFrame } from "./PanelFrame";
 import { PanelSection } from "./PanelSection";
-import { PANEL_PX } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
 import { useChartStore } from "../../store/chart";
 import { SCROLL_SPEED_MAX, SCROLL_SPEED_MIN, useSettingsStore } from "../../store/settings";
@@ -21,60 +21,55 @@ export function RightPanel({ chart }: RightPanelProps) {
 	const setScrollSpeed = useSettingsStore(state => state.setScrollSpeed);
 
 	return (
-		<aside
-			className="shrink-0 h-full overflow-y-auto border-l border-base-content/10 bg-base-200 p-2"
-			style={{ width: PANEL_PX }}
-		>
-			<div className="flex min-h-full flex-col justify-center space-y-3">
-				<PanelSection title="Chart">
-					<ChartInfo chart={chart} />
+		<PanelFrame side="right">
+			<PanelSection title="Chart">
+				<ChartInfo chart={chart} />
+			</PanelSection>
+
+			{warnings.length > 0 && (
+				<PanelSection title="Warnings">
+					<Warnings warnings={warnings} />
+					{warnings.some(warning => warning.code === "random-branch") && (
+						<button type="button" className="btn btn-xs btn-outline w-full" onClick={reroll}>
+							Reroll random branches
+						</button>
+					)}
 				</PanelSection>
+			)}
 
-				{warnings.length > 0 && (
-					<PanelSection title="Warnings">
-						<Warnings warnings={warnings} />
-						{warnings.some(warning => warning.code === "random-branch") && (
-							<button type="button" className="btn btn-xs btn-outline w-full" onClick={reroll}>
-								Reroll random branches
-							</button>
-						)}
-					</PanelSection>
-				)}
-
-				<PanelSection title="View">
-					<div className="space-y-3 rounded-box border border-base-content/10 bg-base-300/40 p-2">
-						<div className="join w-full">
-							<button
-								type="button"
-								className={`btn btn-xs join-item flex-1 ${scrollMode === "original" ? "btn-active" : ""}`}
-								onClick={() => setScrollMode("original")}
-							>
-								Original
-							</button>
-							<button
-								type="button"
-								className={`btn btn-xs join-item flex-1 ${scrollMode === "noSv" ? "btn-active" : ""}`}
-								onClick={() => setScrollMode("noSv")}
-							>
-								No SV
-							</button>
-						</div>
-
-						<label className="block space-y-1">
-							<span className="text-xs text-base-content/60">Scroll speed</span>
-							<input
-								type="range"
-								className="range range-xs"
-								min={SCROLL_SPEED_MIN}
-								max={SCROLL_SPEED_MAX}
-								step={0.05}
-								value={scrollSpeed}
-								onChange={e => setScrollSpeed(Number(e.target.value))}
-							/>
-						</label>
+			<PanelSection title="View">
+				<div className="space-y-3 rounded-box border border-base-content/10 bg-base-300/40 p-2">
+					<div className="join w-full">
+						<button
+							type="button"
+							className={`btn btn-xs join-item flex-1 ${scrollMode === "original" ? "btn-active" : ""}`}
+							onClick={() => setScrollMode("original")}
+						>
+							Original
+						</button>
+						<button
+							type="button"
+							className={`btn btn-xs join-item flex-1 ${scrollMode === "noSv" ? "btn-active" : ""}`}
+							onClick={() => setScrollMode("noSv")}
+						>
+							No SV
+						</button>
 					</div>
-				</PanelSection>
-			</div>
-		</aside>
+
+					<label className="block space-y-1">
+						<span className="text-xs text-base-content/60">Scroll speed</span>
+						<input
+							type="range"
+							className="range range-xs"
+							min={SCROLL_SPEED_MIN}
+							max={SCROLL_SPEED_MAX}
+							step={0.05}
+							value={scrollSpeed}
+							onChange={e => setScrollSpeed(Number(e.target.value))}
+						/>
+					</label>
+				</div>
+			</PanelSection>
+		</PanelFrame>
 	);
 }

@@ -4,12 +4,9 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import type { ScrollMode } from "../engine/flatten";
 import type { ThemeChoice } from "../theme";
 
-/** Scroll speed bounds - every write into the store is calmped into this range. */
+/** Scroll speed bounds - every write into the store is clamped into this range. */
 export const SCROLL_SPEED_MIN = 0.05;
 export const SCROLL_SPEED_MAX = 2;
-/** Highway base-width multiplier bounds (1.0 = 460px). */
-export const HIGHWAY_SCALE_MIN = 0.5;
-export const HIGHWAY_SCALE_MAX = 2;
 
 type PanelSide = "left" | "right";
 
@@ -17,7 +14,6 @@ type SettingsState = {
 	theme: ThemeChoice;
 	scrollMode: ScrollMode;
 	scrollSpeed: number;
-	highwayScale: number;
 	leftPanelOpen: boolean;
 	rightPanelOpen: boolean;
 
@@ -36,10 +32,10 @@ const snap = (value: number): number => Math.round(value * 100) / 100;
 const clampSpeed = (value: number): number => clamp(snap(value), SCROLL_SPEED_MIN, SCROLL_SPEED_MAX);
 
 /**
- * Validates persisted data field by field; anything unknown, wront-typed or out of range is dropped
+ * Validates persisted data field by field; anything unknown, wrong-typed or out of range is dropped
  * so the matching default survives the merge.
  */
-export function sanitizeSettings(persisted: unknown): Partial<SettingsState> {
+function sanitizeSettings(persisted: unknown): Partial<SettingsState> {
 	const raw = (persisted ?? {}) as Record<string, unknown>;
 	const out: Partial<SettingsState> = {};
 
@@ -49,8 +45,6 @@ export function sanitizeSettings(persisted: unknown): Partial<SettingsState> {
 		out.scrollMode = raw.scrollMode;
 	if (typeof raw.scrollSpeed === "number" && Number.isFinite(raw.scrollSpeed))
 		out.scrollSpeed = clampSpeed(raw.scrollSpeed);
-	if (typeof raw.highwayScale === "number" && Number.isFinite(raw.highwayScale))
-		out.highwayScale = clamp(raw.highwayScale, HIGHWAY_SCALE_MIN, HIGHWAY_SCALE_MAX);
 	if (typeof raw.leftPanelOpen === "boolean")
 		out.leftPanelOpen = raw.leftPanelOpen;
 	if (typeof raw.rightPanelOpen === "boolean")
@@ -66,7 +60,6 @@ export const useSettingsStore = create<SettingsState>()(
 			theme: "system",
 			scrollMode: "original",
 			scrollSpeed: 0.75,
-			highwayScale: 1,
 			leftPanelOpen: true,
 			rightPanelOpen: true,
 			setTheme: theme => set({ theme }),
@@ -81,7 +74,7 @@ export const useSettingsStore = create<SettingsState>()(
 			name: "vsrg-visualizer-settings",
 			// node(test) has no localStorage - the documented SSR-safe guard; persist then no-ops.
 			storage: createJSONStorage(() => localStorage),
-			merge: (persisted, current) => ({ ...current, ...sanitizeSettings(persisted)})
+			merge: (persisted, current) => ({ ...current, ...sanitizeSettings(persisted) })
 		}
 	)
 );

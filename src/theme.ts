@@ -53,6 +53,9 @@ export function darken(color: number, amount: number): number {
 	return (r << 16) | (g << 8) | b;
 }
 
+/** The media query the app watches for the OS light/dark preference. */
+export const DARK_MEDIA_QUERY = "(prefers-color-scheme: dark)";
+
 /** Maps a choice to a concrete theme; "system" defers to the OS preference. */
 export function resolveTheme(choice: ThemeChoice, systemDark: boolean): "light" | "dark" {
 	if (choice === "system")
@@ -61,6 +64,11 @@ export function resolveTheme(choice: ThemeChoice, systemDark: boolean): "light" 
 }
 
 /** The toggle always pins the opposite of the currently resolved theme. */
-export function nextTheme(resolved: "light" | "dark"): ThemeChoice {
+function nextTheme(resolved: "light" | "dark"): ThemeChoice {
 	return resolved === "dark" ? "light" : "dark";
+}
+
+/** What a theme toggle should pin next, resolving "system" against the OS preference. */
+export function toggleTheme(current: ThemeChoice): ThemeChoice {
+	return nextTheme(resolveTheme(current, window.matchMedia(DARK_MEDIA_QUERY).matches));
 }

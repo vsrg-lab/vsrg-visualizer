@@ -3,12 +3,12 @@ import { useState } from "react";
 
 import type { Warning } from "../../model/types";
 
-type WarningProps = {
+type WarningsProps = {
 	warnings: Warning[];
 };
 
 /** Collapsed warning count that expands into the list. Nothing renders when the chart is clean. */
-export function Warnings({ warnings }: WarningProps) {
+export function Warnings({ warnings }: WarningsProps) {
 	const [open, setOpen] = useState<boolean>(false);
 
 	if (warnings.length === 0)

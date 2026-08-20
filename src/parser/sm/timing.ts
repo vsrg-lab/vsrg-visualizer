@@ -79,7 +79,7 @@ function buildStopEvents(
 	stops: Entry[],
 	positiveBpmAt: (beat: number) => number,
 	warnings: Warning[]
-): { events: TimingEvent[]; warps: TimingEvent[] }{
+): { events: TimingEvent[]; warps: TimingEvent[] } {
 	const events: TimingEvent[] = [];
 	const warps: TimingEvent[] = [];
 
@@ -147,8 +147,23 @@ function buildSvEvents(
 
 	const breakpoints = [...new Set([...scrolls, ...samples].map(entry => entry.at))].sort((a, b) => a - b);
 	const events: TimingEvent[] = [];
-	for (const at of breakpoints)
-		events.push({ kind: "sv", at, multiplier: valueAt(scrolls, at, 1) * valueAt(samples, at, 1) });
+
+	// Both lists and the breakpoints are sorted, so one shared cursor per list walks them
+	// together instead of rescanning from the front for every breakpoint.
+	let scrollIndex = -1;
+	let sampleIndex = -1;
+
+	for (const at of breakpoints) {
+		while (scrollIndex + 1 < scrolls.length && scrolls[scrollIndex + 1].at <= at)
+			scrollIndex++;
+
+		while (sampleIndex + 1 < samples.length && samples[sampleIndex + 1].at <= at)
+			sampleIndex++;
+
+		const scroll = scrollIndex < 0 ? 1 : scrolls[scrollIndex].parts[0];
+		const speed = sampleIndex < 0 ? 1 : samples[sampleIndex].parts[0];
+		events.push({ kind: "sv", at, multiplier: scroll * speed });
+	}
 
 	return events;
 }
@@ -156,8 +171,8 @@ function buildSvEvents(
 /** Converts the resolved timing tags of one chart into source events. */
 export function parseSmTiming(tags: Map<string, string>, warnings: Warning[]): SmTiming {
 	const bpms = parseEntries(tags.get("BPMS"));
-	const positibeBpms = bpms.filter(entry => entry.parts[0] > 0);
-	const positiveBpmAt = (beat: number): number => valueAt(positibeBpms, beat, 120);
+	const positiveBpms = bpms.filter(entry => entry.parts[0] > 0);
+	const positiveBpmAt = (beat: number): number => valueAt(positiveBpms, beat, 120);
 
 	const bpm = buildBpmEvents(bpms, warnings);
 	const stops = buildStopEvents(parseEntries(tags.get("STOPS")), positiveBpmAt, warnings);

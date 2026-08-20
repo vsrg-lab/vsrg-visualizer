@@ -28,7 +28,7 @@ export function splitOsuSections(text: string): OsuSections {
 }
 
 /** Reads `Key: Value` lines from a section into a map. Later keys win. */
-export function readKeyValues(lines: string[]): Map <string, string> {
+export function readKeyValues(lines: string[]): Map<string, string> {
 	const values = new Map<string, string>();
 
 	for (const line of lines) {

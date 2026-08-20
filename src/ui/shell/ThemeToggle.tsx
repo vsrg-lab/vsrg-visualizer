@@ -1,7 +1,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 
 import { useSettingsStore } from "../../store/settings";
-import { nextTheme, resolveTheme } from "../../theme";
+import { toggleTheme } from "../../theme";
 
 /** Theme pin button - shows the current choice and pins the opposite of the resolved theme. */
 export function ThemeToggle() {
@@ -13,8 +13,7 @@ export function ThemeToggle() {
 		: theme === "light" ? <Sun size={16} /> : <Moon size={16} />;
 
 	function toggle(): void {
-		const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-		setTheme(nextTheme(resolveTheme(theme, systemDark)));
+		setTheme(toggleTheme(theme));
 	}
 
 	return (
