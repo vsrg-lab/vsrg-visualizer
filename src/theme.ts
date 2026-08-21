@@ -43,6 +43,15 @@ export const HIGHWAY_PALETTE: HighwayPalette = {
 	fake: 0x9a9aac
 };
 
+/** Bar colors of the density minimap. It is a canvas, so it cannot read the CSS chrome tokens. */
+export type MinimapPalette = { played: string; unplayed: string; playhead: string };
+
+/** Unlike the highway, the minimap is chrome and follows the DOM theme. */
+export const MINIMAP_PALETTE: Record<"light" | "dark", MinimapPalette> = {
+	dark: { played: "rgba(77,125,200,0.85)", unplayed: "rgba(212,212,216,0.28)", playhead: "#e8e8f0" },
+	light: { played: "rgba(53,97,159,0.9)", unplayed: "rgba(28,28,34,0.22)", playhead: "#1c1c22" }
+};
+
 /** Darkens an RGB color by scaling each channel toward black; amount is clamped to [0, 1]. */
 export function darken(color: number, amount: number): number {
 	const k = 1 - Math.min(Math.max(amount, 0), 1);

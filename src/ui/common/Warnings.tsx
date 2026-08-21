@@ -1,39 +1,26 @@
-import { ChevronDown, ChevronUp, TriangleAlert } from "lucide-react";
-import { useState } from "react";
-
 import type { Warning } from "../../model/types";
 
 type WarningsProps = {
 	warnings: Warning[];
 };
 
-/** Collapsed warning count that expands into the list. Nothing renders when the chart is clean. */
+/** Every warning, always expanded - a collapsed count hides exactly the thing worth reading. */
 export function Warnings({ warnings }: WarningsProps) {
-	const [open, setOpen] = useState<boolean>(false);
-
-	if (warnings.length === 0)
-		return null;
-
 	return (
-		<div>
-			<button
-				type="button"
-				className="btn btn-xs btn-warning btn-outline"
-				onClick={() => setOpen(!open)}
-			>
-				<TriangleAlert size={12} />
-				{warnings.length} warning{warnings.length !== 1 ? "s" : ""}
-				{open ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-			</button>
-			{open && (
-				<ul className="mt-1 space-y-0.5 text-warning text-xs">
-					{warnings.map((w, i) => (
-						<li key={i}>
-							<span className="opacity-60">[{w.code}]</span> {w.message}
-						</li>
-					))}
-				</ul>
-			)}
+		<div className="flex min-h-0 flex-col gap-1.5 overflow-y-auto">
+			{warnings.map((warning, i) => (
+				<div
+					key={i}
+					className="shrink-0 rounded-[5px] border-l-2 border-warn-edge bg-warn-wash px-[9px] py-[7px]"
+				>
+					<div className="font-mono text-[10px] tracking-[0.08em] text-warn-ui">
+						{warning.code.toUpperCase()}
+					</div>
+					<div className="text-[12px] leading-[1.4] text-body/70">
+						{warning.line !== undefined && `line ${warning.line}: `}{warning.message}
+					</div>
+				</div>
+			))}
 		</div>
 	);
 }

@@ -1,25 +1,101 @@
 import { Pause, Play, Square } from "lucide-react";
+import { memo, useMemo } from "react";
 
+import type { ChartTimingEvent } from "../../engine/stats";
 import { usePlaybackStore } from "../../store/playback";
-import { ThemeToggle } from "../shell/ThemeToggle";
+import { IconButton } from "../common/IconButton";
+import { Segmented } from "../common/Segmented";
+import { formatClock, formatClockCentis } from "../format";
 
-/** Elapsed-clock format "m:ss". */
-function formatClock(ms: number): string {
-	const total = Math.max(0, Math.floor(ms / 1000));
-	const hours = Math.floor(total / 3600);
-	const minutes = Math.floor((total % 3600) / 60);
-	const seconds = total % 60;
-	const two = (n: number) => String(n).padStart(2, "0");
+const RATES: { value: number; label: string }[] = [
+	{ value: 0.5, label: "0.5" },
+	{ value: 1, label: "1.0" },
+	{ value: 1.5, label: "1.5" },
+	{ value: 2, label: "2.0" }
+];
 
-	return hours > 0 ? `${hours}:${two(minutes)}:${two(seconds)}` : `${minutes}:${two(seconds)}`;
+/** Flags closer together than this share one label; below it they would just overprint. */
+const FLAG_MERGE_PERCENT = 3;
+
+/** One label on the flag lane, possibly standing for several events at the same spot. */
+type Flag = { percent: number; text: string; warn: boolean };
+
+function flagText(event: ChartTimingEvent): string {
+	if (event.kind === "bpm")
+		return String(Math.round(event.value));
+	if (event.kind === "sv")
+		return `×${event.value.toFixed(1)}`;
+
+	return "STOP";
 }
+
+/** Places one label per event, then merges runs that would overlap into a counted label. */
+function buildFlags(events: ChartTimingEvent[], durationMs: number): Flag[] {
+	if (durationMs <= 0)
+		return [];
+
+	const flags: Flag[] = [];
+	let runStart = 0;
+
+	const flush = (from: number, to: number): void => {
+		const first = events[from];
+		const count = to - from;
+		const sameKind = events.slice(from, to).every(event => event.kind === first.kind);
+
+		flags.push({
+			percent: first.timeMs / durationMs * 100,
+			text: count > 1 && sameKind ? `${flagText(first)} ×${count}` : flagText(first),
+			warn: events.slice(from, to).some(event => event.kind === "stop")
+		});
+	};
+
+	for (let i = 1; i <= events.length; i++) {
+		const gap = i < events.length
+			? (events[i].timeMs - events[runStart].timeMs) / durationMs * 100
+			: Infinity;
+
+		if (gap >= FLAG_MERGE_PERCENT) {
+			flush(runStart, i);
+			runStart = i;
+		}
+	}
+
+	return flags;
+}
+
+type FlagLaneProps = {
+	flags: Flag[];
+};
+
+/**
+ * Memoized because the bar around it re-renders every frame off the clock, while the flags only
+ * change when the chart does.
+ */
+const FlagLane = memo(function FlagLane({ flags }: FlagLaneProps) {
+	return (
+		<div className="relative h-3">
+			{flags.map((flag, i) => (
+				<span
+					key={i}
+					className={`absolute font-mono text-[10px] tabular-nums ${
+						flag.warn ? "text-warn-ui" : "text-micro"
+					}`}
+					style={{ left: `${flag.percent}%` }}
+				>
+					{flag.text}
+				</span>
+			))}
+		</div>
+	);
+});
 
 type TransportProps = {
 	durationMs: number;
+	events: ChartTimingEvent[];
 };
 
-/** Bottom playback bar. */
-export function Transport({ durationMs }: TransportProps) {
+/** Bottom playback bar: transport, clock, seek surface and rate, in one row. */
+export function Transport({ durationMs, events }: TransportProps) {
 	const playing = usePlaybackStore(state => state.playing);
 	const timeMs = usePlaybackStore(state => state.timeMs);
 	const rate = usePlaybackStore(state => state.rate);
@@ -29,54 +105,65 @@ export function Transport({ durationMs }: TransportProps) {
 	const seek = usePlaybackStore(state => state.seek);
 	const setRate = usePlaybackStore(state => state.setRate);
 
+	const flags = useMemo(() => buildFlags(events, durationMs), [events, durationMs]);
+	const progress = durationMs > 0 ? Math.min(timeMs, durationMs) / durationMs * 100 : 0;
+
 	return (
-		<div className="flex flex-col gap-2 px-4 py-2 bg-base-200 border-t border-base-content/10" >
-			<input
-				type="range"
-				min={0}
-				max={Math.max(durationMs, 1)}
-				value={Math.min(timeMs, durationMs)}
-				onChange={e => seek(Number(e.target.value))}
-				className="range range-xs range-primary w-full"
-				title="Seek"
-			/>
-			<div className="flex flex-wrap items-center justify-center gap-3">
-				<div className="flex items-center gap-1">
-					<button
-						type="button"
-						className="btn btn-sm btn-ghost"
-						onClick={stop}
-						title="Stop (Esc)"
-					>
-						<Square size={14} />
-					</button>
-					<button
-						type="button"
-						className="btn btn-sm btn-circle"
-						onClick={playing ? pause : play}
-						title={playing ? "Pause (Space)" : "Play (Space)"}
-					>
-						{playing ? <Pause size={18} /> : <Play size={18} />}
-					</button>
-				</div>
-				<span className="text-sm tabular-nums text-base-content/70">
-					{formatClock(timeMs)} / {formatClock(durationMs)}
-				</span>
-				<label className="flex items-center gap-1 text-sm text-base-content/80">
-					Rate
-					<select
-						className="select select-sm"
-						value={rate}
-						onChange={e => setRate(Number(e.target.value))}
-					>
-						<option value={0.5}>0.5x</option>
-						<option value={1}>1x</option>
-						<option value={1.5}>1.5x</option>
-						<option value={2}>2x</option>
-					</select>
-				</label>
-				<ThemeToggle />
+		<div className="flex h-[68px] shrink-0 items-center gap-[18px] border-t border-line bg-surface px-[18px]">
+			<div className="flex items-center gap-1.5">
+				<IconButton label="Stop (Esc)" size={30} onClick={stop}>
+					<Square size={13} fill="currentColor" strokeWidth={0} />
+				</IconButton>
+				<button
+					type="button"
+					title={playing ? "Pause (Space)" : "Play (Space)"}
+					aria-label={playing ? "Pause" : "Play"}
+					className="flex size-[38px] shrink-0 items-center justify-center rounded-full bg-strong text-on-strong"
+					onClick={playing ? pause : play}
+				>
+					{playing
+						? <Pause size={16} fill="currentColor" strokeWidth={0} />
+						: <Play size={16} fill="currentColor" strokeWidth={0} />}
+				</button>
 			</div>
+
+			<div className="flex w-[130px] shrink-0 items-baseline gap-1.5">
+				<span className="font-mono text-[20px] tabular-nums text-strong">{formatClockCentis(timeMs)}</span>
+				<span className="font-mono text-[12px] tabular-nums text-micro">{formatClock(durationMs)}</span>
+			</div>
+
+			<div className="flex min-w-0 flex-1 flex-col gap-[5px]">
+				<div className="relative flex h-2 items-center">
+					<div className="absolute inset-x-0 h-0.5 rounded-sm bg-base-300" />
+					<div
+						className="absolute left-0 h-0.5 rounded-sm bg-accent-ui"
+						style={{ width: `${progress}%` }}
+					/>
+					<div
+						className="absolute -ml-[5px] size-2.5 rounded-full bg-strong"
+						style={{ left: `${progress}%` }}
+					/>
+					<input
+						type="range"
+						title="Seek"
+						aria-label="Seek"
+						min={0}
+						max={Math.max(durationMs, 1)}
+						value={Math.min(timeMs, durationMs)}
+						onChange={e => seek(Number(e.target.value))}
+						className="absolute inset-0 size-full cursor-pointer opacity-0"
+					/>
+				</div>
+				<FlagLane flags={flags} />
+			</div>
+
+			<Segmented
+				label="Playback rate"
+				variant="compact"
+				options={RATES}
+				value={rate}
+				onChange={setRate}
+			/>
 		</div>
 	);
 }

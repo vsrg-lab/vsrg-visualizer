@@ -3,27 +3,45 @@ import { useEffect, useMemo, useState, type RefObject } from "react";
 import type { Chart } from "../model/types";
 import { useSettingsStore } from "../store/settings";
 
-/** Base width of a single-stage highway. */
-const HIGHWAY_BASE_PX = 460;
-/** Per-lane cap - binds only at 3 keys or fewer (460 / 4 = 115). */
+/** Reserved width of the field box. Constant across key counts and stage counts. */
+const CENTER_SLOT_PX = 1080;
+/** Drawn width of a single-stage field; it is centered inside the slot instead of filling it. */
+const FIELD_SINGLE_PX = 520;
+/** Per-lane cap - binds only at 4 keys or fewer for a single stage (520 / 5 = 104). */
 const LANE_WIDTH_MAX = 120;
-/** Width one open side panel occupies. */
-export const PANEL_PX = 320;
+/** Width of the density minimap column. */
+export const MINIMAP_PX = 26;
+/** Gap between the field box and the minimap column. */
+export const MINIMAP_GAP_PX = 10;
+/** Gutter on either side of the center column. */
+export const FIELD_GUTTER_PX = 24;
+/** Width of the left rail. */
+export const LEFT_RAIL_PX = 288;
+/** Width of the right inspector. */
+export const INSPECTOR_PX = 304;
 /** Gap between the receptor line and the bottom edge of the canvas. */
-const RECEPTOR_OFFSET_PX = 90;
+export const RECEPTOR_OFFSET_PX = 90;
 
 /** Width computation result; the effective fields are the panel state after auto-folding. */
 type HighwayLayout = {
 	laneWidth: number;
-	highwayPx: number;
+	/** Drawn width of the field canvas, stage gap included. */
+	fieldPx: number;
 	effectiveLeft: boolean;
 	effectiveRight: boolean;
+	effectiveMinimap: boolean;
 };
 
+/** Outer width the center column needs before anything folds. */
+function centerNeed(withMinimap: boolean): number {
+	return CENTER_SLOT_PX + (withMinimap ? MINIMAP_GAP_PX + MINIMAP_PX : 0) + FIELD_GUTTER_PX * 2;
+}
+
 /**
- * Keeps the highway width fixed across key counts - 4K and 7K get the same width,
- * only the lane width differs - and folds the right panel, then the left, when the
- * viewport cannot fit the target. User-closed panels never reopen.
+ * Reserves a constant center slot so switching difficulty or loading a double-play chart never
+ * moves the rails, then folds the inspector, the left rail and finally the minimap when the
+ * viewport cannot fit that slot. The slot is a reservation, not a drawn box: the field is sized
+ * to the chart and the minimap sits directly beside it. User-closed panels never reopen.
  */
 function computeHighwayLayout(
 	viewportW: number,
@@ -32,25 +50,31 @@ function computeHighwayLayout(
 	leftOpen: boolean,
 	rightOpen: boolean
 ): HighwayLayout {
-	const target = HIGHWAY_BASE_PX * (stages === 2 ? 2 : 1);
-
-	let available = viewportW - (leftOpen ? PANEL_PX : 0) - (rightOpen ? PANEL_PX : 0);
+	let available = viewportW - (leftOpen ? LEFT_RAIL_PX : 0) - (rightOpen ? INSPECTOR_PX : 0);
 	let effectiveLeft = leftOpen;
 	let effectiveRight = rightOpen;
 
-	if (available < target && rightOpen) {
+	if (available < centerNeed(true) && rightOpen) {
 		effectiveRight = false;
-		available += PANEL_PX;
+		available += INSPECTOR_PX;
 	}
 
-	if (available < target && leftOpen) {
+	if (available < centerNeed(true) && leftOpen) {
 		effectiveLeft = false;
-		available += PANEL_PX;
+		available += LEFT_RAIL_PX;
 	}
 
-	const highwayPx = Math.min(target, LANE_WIDTH_MAX * totalKeys, available);
+	const effectiveMinimap = available >= centerNeed(true);
+	const box = available
+		- (effectiveMinimap ? MINIMAP_GAP_PX + MINIMAP_PX : 0)
+		- FIELD_GUTTER_PX * 2;
 
-	return { laneWidth: highwayPx / totalKeys, highwayPx, effectiveLeft, effectiveRight };
+	const slotPx = Math.max(0, Math.min(CENTER_SLOT_PX, box));
+	// One lane unit is one lane; the double-stage gap is half a lane, so it adds 0.5 units.
+	const laneUnits = stages === 2 ? totalKeys + 0.5 : totalKeys;
+	const fieldPx = Math.min(stages === 2 ? slotPx : FIELD_SINGLE_PX, slotPx, LANE_WIDTH_MAX * laneUnits);
+
+	return { laneWidth: fieldPx / laneUnits, fieldPx, effectiveLeft, effectiveRight, effectiveMinimap };
 }
 
 /** Layout core result plus the measured canvas box. */

@@ -1,67 +1,59 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRef } from "react";
 
-import { useHighwaySize } from "../../hooks/useHighwaySize";
+import { AppHeader } from "./AppHeader";
+import type { ChartStats, ChartTimingEvent, DifficultySummary, NoteDensity } from "../../engine/stats";
+import { FIELD_GUTTER_PX, MINIMAP_GAP_PX, useHighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
-import { useSettingsStore } from "../../store/settings";
+import { useChartStore } from "../../store/chart";
+import { DensityMinimap } from "../common/DensityMinimap";
 import { HighwayCanvas } from "../common/HighwayCanvas";
 import { LeftPanel } from "../panels/LeftPanel";
 import { RightPanel } from "../panels/RightPanel";
 import { Transport } from "../transport/Transport";
 
-/** Cap for the whole app block. */
-const APP_MAX_PX = 1920;
-
 type AppShellProps = {
 	chart: Chart;
 	endMs: number;
+	density: NoteDensity;
+	stats: ChartStats;
+	events: ChartTimingEvent[];
+	summaries: DifficultySummary[];
+	onOpenHelp: () => void;
 };
 
 /**
- * Three-pane frame around the highway. The main row is the layout measuring element:
- * its width spans the side panels, its height is the canvas area.
+ * Header / body / footer frame. The body row is the layout measuring element: its width spans
+ * the rails, its height is the canvas area. The center slot is reserved at a constant width so
+ * loading another chart never moves the rails or reflows the footer.
  */
-export function AppShell({ chart, endMs }: AppShellProps) {
+export function AppShell({ chart, endMs, density, stats, events, summaries, onOpenHelp }: AppShellProps) {
 	const mainRef = useRef<HTMLDivElement>(null);
 	const size = useHighwaySize(mainRef, chart);
-	const leftPanelOpen = useSettingsStore(state => state.leftPanelOpen);
-	const rightPanelOpen = useSettingsStore(state => state.rightPanelOpen);
-	const togglePanel = useSettingsStore(state => state.togglePanel);
+
+	const format = useChartStore(state => state.set?.sourceFormat ?? null);
+	const fileName = useChartStore(state => state.source?.fileName ?? "");
 
 	return (
-		<div className="flex h-screen justify-center bg-base-100 px-3 py-8 text-base-content font-sans">
-			<div className="flex h-full w-full flex-col" style={{ maxWidth: APP_MAX_PX }}>
-				<div ref={mainRef} className="flex w-full flex-1 min-h-0 gap-3">
-					{!size?.effectiveLeft && !leftPanelOpen && (
-						<button
-							type="button"
-							className="btn btn-ghost btn-xs self-center m-1 shrink-0"
-							onClick={() => togglePanel("left")}
-							title="Open left panel"
-						>
-							<ChevronLeft size={14} />
-						</button>
-					)}
-					{size?.effectiveLeft && <LeftPanel />}
+		<div className="flex h-screen flex-col bg-base-100 font-sans text-body">
+			<AppHeader format={format} fileName={fileName} onOpenHelp={onOpenHelp} />
 
-					<div className="flex min-h-0 flex-1 justify-center">
-						{size && <HighwayCanvas chart={chart} size={size} endMs={endMs} />}
-					</div>
+			<div ref={mainRef} className="flex min-h-0 flex-1">
+				{size?.effectiveLeft && <LeftPanel summaries={summaries} events={events} />}
 
-					{size?.effectiveRight && <RightPanel chart={chart} />}
-					{!size?.effectiveRight && !rightPanelOpen && (
-						<button
-							type="button"
-							className="btn btn-ghost btn-xs self-center m-1 shrink-0"
-							onClick={() => togglePanel("right")}
-							title="Open right panel"
-						>
-							<ChevronRight size={14} />
-						</button>
-					)}
+				<div
+					className="flex min-w-0 flex-1 items-stretch justify-center"
+					style={{ gap: MINIMAP_GAP_PX, paddingInline: FIELD_GUTTER_PX }}
+				>
+					{size && <HighwayCanvas chart={chart} size={size} endMs={endMs} />}
+					{size?.effectiveMinimap && <DensityMinimap density={density} endMs={endMs} />}
 				</div>
-				<Transport durationMs={endMs} />
+
+				{size?.effectiveRight && (
+					<RightPanel chart={chart} stats={stats} density={density} durationMs={endMs} />
+				)}
 			</div>
+
+			<Transport durationMs={endMs} events={events} />
 		</div>
 	);
 }

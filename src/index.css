@@ -80,6 +80,84 @@
 	--noise: 0;
 }
 
+/*
+ * Rail chrome tokens. The two DaisyUI blocks above keep owning the DaisyUI semantic colors;
+ * these are the redesign's own scale. They are declared per theme below and registered with
+ * Tailwind here, so `bg-surface` / `text-micro` / `border-line` follow the active theme.
+ * `inline` makes a utility emit the per-theme variable directly instead of a :root copy.
+ */
+@theme inline {
+	--color-surface: var(--rail-surface);
+	--color-surface-2: var(--rail-surface-2);
+	--color-surface-3: var(--rail-surface-3);
+	--color-hover: var(--rail-hover);
+	--color-hover-strong: var(--rail-hover-strong);
+	--color-line: var(--rail-line);
+
+	--color-body: var(--rail-body);
+	--color-strong: var(--rail-strong);
+	--color-on-strong: var(--rail-on-strong);
+	--color-dim: var(--rail-dim);
+	--color-micro: var(--rail-micro);
+
+	--color-accent-ui: var(--rail-accent);
+	--color-accent-text: var(--rail-accent-text);
+	--color-accent-soft: var(--rail-accent-soft);
+	--color-accent-wash: var(--rail-accent-wash);
+	--color-warn-ui: var(--rail-warn);
+	--color-warn-edge: var(--rail-warn-edge);
+	--color-warn-soft: var(--rail-warn-soft);
+	--color-warn-wash: var(--rail-warn-wash);
+}
+
+[data-theme="slate"] {
+	--rail-surface: #14141c;
+	--rail-surface-2: #1b1b24;
+	--rail-surface-3: #2b2b38;
+	--rail-hover: #1b1b24;
+	--rail-hover-strong: #2b2b38;
+	--rail-line: rgba(212, 212, 216, 0.09);
+
+	--rail-body: #d4d4d8;
+	--rail-strong: #e8e8f0;
+	--rail-on-strong: #0e0e16;
+	--rail-dim: rgba(212, 212, 216, 0.55);
+	--rail-micro: rgba(212, 212, 216, 0.6);
+
+	--rail-accent: #4d7dc8;
+	--rail-accent-text: #89aee0;
+	--rail-accent-soft: rgba(77, 125, 200, 0.16);
+	--rail-accent-wash: rgba(77, 125, 200, 0.1);
+	--rail-warn: #d8a838;
+	--rail-warn-edge: rgba(216, 168, 56, 0.6);
+	--rail-warn-soft: rgba(216, 168, 56, 0.16);
+	--rail-warn-wash: rgba(216, 168, 56, 0.07);
+}
+
+[data-theme="slate-light"] {
+	--rail-surface: #ffffff;
+	--rail-surface-2: #e8e8ec;
+	--rail-surface-3: #ffffff;
+	--rail-hover: #eeeef0;
+	--rail-hover-strong: #dcdce1;
+	--rail-line: rgba(28, 28, 34, 0.1);
+
+	--rail-body: #1c1c22;
+	--rail-strong: #1c1c22;
+	--rail-on-strong: #f4f4f5;
+	--rail-dim: rgba(28, 28, 34, 0.55);
+	--rail-micro: rgba(28, 28, 34, 0.62);
+
+	--rail-accent: #35619f;
+	--rail-accent-text: #35619f;
+	--rail-accent-soft: rgba(53, 97, 159, 0.1);
+	--rail-accent-wash: rgba(53, 97, 159, 0.08);
+	--rail-warn: #8a6a12;
+	--rail-warn-edge: #c99a2e;
+	--rail-warn-soft: rgba(216, 168, 56, 0.2);
+	--rail-warn-wash: rgba(216, 168, 56, 0.14);
+}
+
 html, body, #root {
     margin: 0;
     height: 100%;

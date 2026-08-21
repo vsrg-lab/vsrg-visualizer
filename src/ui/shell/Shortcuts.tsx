@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 
 import { useChartStore } from "../../store/chart";
 import { usePlaybackStore } from "../../store/playback";
@@ -21,15 +21,16 @@ const SHORTCUTS: [string, string][] = [
 type ShortcutsProps = {
 	/** null while no chart is loaded - the seek keys stay inert until one is. */
 	endMs: number | null;
+	/** Owned by App so the header's help button opens the same overlay the "?" key does. */
+	helpOpen: boolean;
+	setHelpOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 /**
  * Global keyboard shortcuts with a help overlay. Keys typed into a field are ignored,
  * and while the overlay is open Esc only closes it - playback stop waits.
  */
-export function Shortcuts({ endMs }: ShortcutsProps) {
-	const [helpOpen, setHelpOpen] = useState(false);
-
+export function Shortcuts({ endMs, helpOpen, setHelpOpen }: ShortcutsProps) {
 	useEffect(() => {
 		const onKeyDown = (event: KeyboardEvent) => {
 			const target = event.target;
@@ -112,25 +113,31 @@ export function Shortcuts({ endMs }: ShortcutsProps) {
 
 		window.addEventListener("keydown", onKeyDown);
 		return () => window.removeEventListener("keydown", onKeyDown);
-	}, [endMs, helpOpen]);
+	}, [endMs, helpOpen, setHelpOpen]);
 
 	if (!helpOpen)
 		return null;
 
 	return (
-		<div className="modal modal-open" onClick={() => setHelpOpen(false)}>
-			<div className="modal-box" onClick={e => e.stopPropagation()}>
-				<div className="text-lg font-bold mb-2">Shortcuts</div>
-				<table className="table table-sm">
-					<tbody>
-						{SHORTCUTS.map(([keys, description]) => (
-							<tr key={keys}>
-								<td className="w-24"><span className="kbd kbd-sm">{keys}</span></td>
-								<td>{description}</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+		<div
+			className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 font-sans"
+			onClick={() => setHelpOpen(false)}
+		>
+			<div
+				className="w-80 rounded-[10px] border border-line bg-surface p-5"
+				onClick={e => e.stopPropagation()}
+			>
+				<div className="mb-3 font-mono text-[10px] tracking-[0.14em] text-micro">SHORTCUTS</div>
+				<ul className="flex flex-col gap-2">
+					{SHORTCUTS.map(([keys, description]) => (
+						<li key={keys} className="flex items-center gap-3">
+							<span className="w-16 shrink-0 rounded-[3px] bg-surface-2 px-1.5 py-0.5 text-center font-mono text-[11px] text-body/75">
+								{keys}
+							</span>
+							<span className="text-[12px] text-dim">{description}</span>
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	);

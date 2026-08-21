@@ -2,6 +2,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 
 import { useSettingsStore } from "../../store/settings";
 import { toggleTheme } from "../../theme";
+import { IconButton } from "../common/IconButton";
 
 /** Theme pin button - shows the current choice and pins the opposite of the resolved theme. */
 export function ThemeToggle() {
@@ -9,16 +10,12 @@ export function ThemeToggle() {
 	const setTheme = useSettingsStore(state => state.setTheme);
 
 	const icon = theme === "system"
-		? <Monitor size={16} />
-		: theme === "light" ? <Sun size={16} /> : <Moon size={16} />;
-
-	function toggle(): void {
-		setTheme(toggleTheme(theme));
-	}
+		? <Monitor size={15} strokeWidth={1.8} />
+		: theme === "light" ? <Sun size={15} strokeWidth={1.8} /> : <Moon size={15} strokeWidth={1.8} />;
 
 	return (
-		<button type="button" className="btn btn-sm btn-ghost" onClick={toggle} title={`Theme: ${theme}`}>
+		<IconButton label={`Theme: ${theme} (T)`} size={28} onClick={() => setTheme(toggleTheme(theme))}>
 			{icon}
-		</button>
+		</IconButton>
 	);
 }

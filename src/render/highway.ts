@@ -1,4 +1,4 @@
-import { Container, Graphics } from "pixi.js";
+import { Container, FillGradient, Graphics } from "pixi.js";
 
 import { highwayGeometry, laneX, visibleNoteRange, type HighwayGeometry } from "./geometry";
 import { drawFake, drawHold, drawMine, drawTap, noteMetrics, type NoteMetrics } from "./notes";
@@ -22,6 +22,10 @@ const MIN_MULT_FLOOR = 0.2;
 const VISIBILITY_SLACK_UNITS = 200;
 /** Cap on the forward visibility window so slow-SV charts keep some culling benefit. */
 const AHEAD_CAP_MS = 60_000;
+/** Height of the receptor wash. It fades upward so the judgment row reads as a horizon. */
+const RECEPTOR_WASH_PX = 40;
+/** Alpha the wash reaches at the receptor line. */
+const RECEPTOR_WASH_ALPHA = 0.1;
 
 /** Renders an SV-aware down-scroll note highway into a Pixi container. */
 export class Highway {
@@ -81,12 +85,24 @@ export class Highway {
 			g.rect(geo.originX + geo.stageSplit * geo.laneWidth + geo.stageGap / 2, 0, 2, this.opts.height)
 				.fill({ color: this.opts.palette.stageSeparator });
 
-		for (let lane = 0; lane < this.chart.layout.totalKeys; lane++)
-			g.rect(laneX(geo, lane), this.opts.receptorY - 6, geo.laneWidth, 12)
-				.fill({ color: this.laneColors[lane], alpha: 0.35 });
+		const receptor = this.opts.palette.receptor;
+		const rgb = { r: (receptor >> 16) & 0xff, g: (receptor >> 8) & 0xff, b: receptor & 0xff };
+		const washTop = this.opts.receptorY - RECEPTOR_WASH_PX;
 
-		g.rect(geo.originX, this.opts.receptorY, geo.totalWidth, 2)
-			.fill({ color: this.opts.palette.receptor });
+		g.rect(geo.originX, washTop, geo.totalWidth, RECEPTOR_WASH_PX)
+			.fill(new FillGradient({
+				type: "linear",
+				start: { x: 0, y: washTop },
+				end: { x: 0, y: this.opts.receptorY },
+				colorStops: [
+					{ offset: 0, color: { ...rgb, a: 0 } },
+					{ offset: 1, color: { ...rgb, a: RECEPTOR_WASH_ALPHA } }
+				],
+				textureSpace: "global"
+			}));
+
+		g.rect(geo.originX, this.opts.receptorY, geo.totalWidth, 1)
+			.fill({ color: receptor });
 	}
 
 	render(timeMs: number, pxPerUnit: number): void {

@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 
 import type { HighwaySize } from "../../hooks/useHighwaySize";
 import type { Chart } from "../../model/types";
-import { stageGapOf } from "../../render/geometry";
 import { Highway } from "../../render/highway";
 import { clock, usePlaybackStore } from "../../store/playback";
 import { useSettingsStore } from "../../store/settings";
@@ -23,8 +22,6 @@ export function HighwayCanvas({ chart, size, endMs }: HighwayCanvasProps) {
 	const hostRef = useRef<HTMLDivElement>(null);
 	const highwayRef = useRef<Highway | null>(null);
 	const [app, setApp] = useState<Application | null>(null);
-
-	const stageGap = stageGapOf(size.laneWidth, chart.layout.stages);
 
 	// The Application outlives chart and size changes - rebuilding it would recreate the WebGL
 	// context on every resize frame. The ticker reads the current Highway through the ref.
@@ -61,8 +58,12 @@ export function HighwayCanvas({ chart, size, endMs }: HighwayCanvasProps) {
 		if (!app)
 			return;
 
+		// resizeTo only re-reads the host on a window resize, so a host that changed on its own -
+		// a folded panel, or a single-stage chart replaced by a double - has to be pulled in here.
+		app.resize();
+
 		const highway = new Highway(app.stage, chart, {
-			canvasWidth: size.highwayPx + stageGap,
+			canvasWidth: size.fieldPx,
 			laneWidth: size.laneWidth,
 			receptorY: size.receptorY,
 			height: size.height,
@@ -74,7 +75,7 @@ export function HighwayCanvas({ chart, size, endMs }: HighwayCanvasProps) {
 			highwayRef.current = null;
 			highway.destroy();
 		};
-	}, [app, chart, size, stageGap]);
+	}, [app, chart, size]);
 
 	useEffect(() => {
 		const host = hostRef.current;
@@ -95,5 +96,5 @@ export function HighwayCanvas({ chart, size, endMs }: HighwayCanvasProps) {
 		return () => host.removeEventListener("wheel", onWheel);
 	}, [endMs]);
 
-	return <div ref={hostRef} className="h-full shrink-0" style={{ width: size.highwayPx + stageGap }} />;
+	return <div ref={hostRef} className="h-full shrink-0" style={{ width: size.fieldPx }} />;
 }
