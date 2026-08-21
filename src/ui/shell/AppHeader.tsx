@@ -33,11 +33,11 @@ export function AppHeader({ format, fileName, onOpenHelp }: AppHeaderProps) {
 		<header className="flex h-12 shrink-0 items-center justify-between border-b border-line bg-surface px-3.5">
 			<div className="flex min-w-0 items-center gap-3.5">
 				<span className="shrink-0 font-mono text-[12px] tracking-[0.18em] text-body/75">VSRG</span>
-				<span className="h-[18px] w-px shrink-0 bg-body/12" />
+				<span className="h-4.5 w-px shrink-0 bg-body/12" />
 				<div className="flex min-w-0 items-center gap-2">
 					{format !== null && (
 						<span
-							className={`shrink-0 rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] tracking-[0.1em] ${
+							className={`shrink-0 rounded-[3px] px-1.5 py-0.5 font-mono text-[10px] tracking-widest ${
 								warnTinted ? "bg-warn-soft text-warn-ui" : "bg-accent-soft text-accent-text"
 							}`}
 						>
@@ -47,7 +47,7 @@ export function AppHeader({ format, fileName, onOpenHelp }: AppHeaderProps) {
 					<span className="truncate font-mono text-[13px] text-body/85">{fileName}</span>
 					<button
 						type="button"
-						className="shrink-0 text-[12px] text-micro transition-colors duration-[120ms] hover:text-strong"
+						className="shrink-0 text-[12px] text-micro transition-colors duration-120 hover:text-strong"
 						onClick={() => inputRef.current?.click()}
 					>
 						Replace
@@ -72,7 +72,7 @@ export function AppHeader({ format, fileName, onOpenHelp }: AppHeaderProps) {
 				>
 					<PanelRight size={15} strokeWidth={1.8} />
 				</IconButton>
-				<span className="mx-1.5 h-[18px] w-px bg-body/12" />
+				<span className="mx-1.5 h-4.5 w-px bg-body/12" />
 				<ThemeToggle />
 				<IconButton label="Shortcuts (?)" size={28} onClick={onOpenHelp}>
 					<span className="font-mono text-[13px] leading-none">?</span>

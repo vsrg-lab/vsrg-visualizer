@@ -19,8 +19,8 @@ export function IconButton({ label, size, onClick, active, children }: IconButto
 			title={label}
 			aria-label={label}
 			onClick={onClick}
-			className={`flex shrink-0 items-center justify-center transition-colors duration-[120ms] hover:bg-hover hover:text-strong ${
-				size === 28 ? "size-7 rounded-[5px]" : "size-[30px] rounded-md"
+			className={`flex shrink-0 items-center justify-center transition-colors duration-120 hover:bg-hover hover:text-strong ${
+				size === 28 ? "size-7 rounded-[5px]" : "size-7.5 rounded-md"
 			} ${active ? "text-strong" : "text-micro"}`}
 		>
 			{children}

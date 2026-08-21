@@ -38,7 +38,7 @@ export function TimingList({ events }: TimingListProps) {
 					<li key={i}>
 						<button
 							type="button"
-							className={`flex w-full items-center gap-2.5 rounded-[5px] px-2 py-[5px] text-left font-mono text-[11px] tabular-nums transition-colors duration-[120ms] ${
+							className={`flex w-full items-center gap-2.5 rounded-[5px] px-2 py-1.25 text-left font-mono text-[11px] tabular-nums transition-colors duration-120 ${
 								i === active ? "bg-accent-wash" : "hover:bg-hover"
 							}`}
 							onClick={() => seekTo(event.timeMs)}

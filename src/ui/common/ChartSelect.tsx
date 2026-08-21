@@ -22,7 +22,7 @@ export function ChartSelect({ charts, summaries, selected, onSelect }: ChartSele
 					<li key={i}>
 						<button
 							type="button"
-							className={`flex w-full items-center gap-2.5 rounded-md border-l-2 py-[7px] pr-2 pl-1.5 text-left transition-colors duration-[120ms] ${
+							className={`flex w-full items-center gap-2.5 rounded-md border-l-2 py-1.75 pr-2 pl-1.5 text-left transition-colors duration-120 ${
 								active ? "border-l-accent-ui bg-surface-2" : "border-l-transparent hover:bg-hover"
 							}`}
 							onClick={() => onSelect(i)}

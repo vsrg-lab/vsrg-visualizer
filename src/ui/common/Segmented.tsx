@@ -33,8 +33,8 @@ export function Segmented<T extends string | number>({
 						type="button"
 						aria-pressed={active}
 						onClick={() => onChange(option.value)}
-						className={`flex items-center justify-center rounded transition-colors duration-[120ms] ${
-							grow ? "h-[26px] flex-1 text-[12px]" : "h-6 px-[9px] font-mono text-[11px]"
+						className={`flex items-center justify-center rounded transition-colors duration-120 ${
+							grow ? "h-6.5 flex-1 text-[12px]" : "h-6 px-2.25 font-mono text-[11px]"
 						} ${
 							active
 								? `bg-surface-3 text-strong ${grow ? "font-medium" : ""}`

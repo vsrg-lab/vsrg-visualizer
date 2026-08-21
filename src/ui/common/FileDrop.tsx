@@ -23,7 +23,7 @@ export function FileDrop({ onFile }: FileDropProps) {
 			onDragOver={e => e.preventDefault()}
 			onDrop={onDrop}
 			onClick={() => inputRef.current?.click()}
-			className="flex cursor-pointer flex-col items-center gap-3 rounded-[10px] border border-dashed border-body/18 bg-surface p-8 transition-colors duration-[120ms] hover:border-accent-ui"
+			className="flex cursor-pointer flex-col items-center gap-3 rounded-[10px] border border-dashed border-body/18 bg-surface p-8 transition-colors duration-120 hover:border-accent-ui"
 		>
 			<FileUp size={22} strokeWidth={1.6} className="text-body/45" />
 			<div className="text-[14px] text-body/80">Drop a chart file here</div>

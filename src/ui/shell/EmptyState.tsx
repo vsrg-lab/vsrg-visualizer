@@ -11,10 +11,10 @@ type EmptyStateProps = {
 export function EmptyState({ errors, onFile }: EmptyStateProps) {
 	return (
 		<div className="flex h-screen items-center justify-center bg-base-100 px-6 font-sans text-body">
-			<div className="flex w-[560px] flex-col gap-[22px]">
+			<div className="flex w-140 flex-col gap-5.5">
 				<div className="flex flex-col gap-2">
 					<span className="font-mono text-[10px] tracking-[0.2em] text-micro">VSRG VISUALIZER</span>
-					<h1 className="text-[26px] font-semibold leading-[1.25] text-strong text-pretty">
+					<h1 className="text-[26px] font-semibold leading-tight text-strong text-pretty">
 						Load a chart and inspect its patterns
 					</h1>
 					<p className="text-[13px] leading-[1.6] text-dim">
@@ -45,7 +45,7 @@ export function EmptyState({ errors, onFile }: EmptyStateProps) {
 				</div>
 
 				{errors.length > 0 && (
-					<ul className="flex flex-col gap-1 text-[12px] leading-[1.5] text-error">
+					<ul className="flex flex-col gap-1 text-[12px] leading-normal text-error">
 						{errors.map((e, i) => <li key={i}>line {e.line}: {e.message}</li>)}
 					</ul>
 				)}

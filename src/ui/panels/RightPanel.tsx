@@ -40,7 +40,7 @@ export function RightPanel({ chart, stats, density, durationMs }: RightPanelProp
 
 	return (
 		<PanelFrame side="right" width={INSPECTOR_PX}>
-			<div className="flex min-h-0 flex-1 flex-col gap-[18px] overflow-hidden px-3.5 py-4">
+			<div className="flex min-h-0 flex-1 flex-col gap-4.5 overflow-hidden px-3.5 py-4">
 				<ChartIdentity chart={chart} durationMs={durationMs} />
 				<StatGrid chart={chart} stats={stats} density={density} />
 
@@ -51,7 +51,7 @@ export function RightPanel({ chart, stats, density, durationMs }: RightPanelProp
 							{rerollable && (
 								<button
 									type="button"
-									className="text-[11px] text-micro transition-colors duration-[120ms] hover:text-strong"
+									className="text-[11px] text-micro transition-colors duration-120 hover:text-strong"
 									onClick={reroll}
 								>
 									Reroll
@@ -77,7 +77,7 @@ export function RightPanel({ chart, stats, density, durationMs }: RightPanelProp
 							<button
 								type="button"
 								aria-label="Slower"
-								className="flex size-[22px] items-center justify-center rounded bg-surface-2 font-mono text-[13px] text-body/70 transition-colors duration-[120ms] hover:bg-hover-strong"
+								className="flex size-5.5 items-center justify-center rounded bg-surface-2 font-mono text-[13px] text-body/70 transition-colors duration-120 hover:bg-hover-strong"
 								onClick={() => bumpScrollSpeed(-SPEED_STEP)}
 							>
 								−
@@ -88,7 +88,7 @@ export function RightPanel({ chart, stats, density, durationMs }: RightPanelProp
 							<button
 								type="button"
 								aria-label="Faster"
-								className="flex size-[22px] items-center justify-center rounded bg-surface-2 font-mono text-[13px] text-body/70 transition-colors duration-[120ms] hover:bg-hover-strong"
+								className="flex size-5.5 items-center justify-center rounded bg-surface-2 font-mono text-[13px] text-body/70 transition-colors duration-120 hover:bg-hover-strong"
 								onClick={() => bumpScrollSpeed(SPEED_STEP)}
 							>
 								+

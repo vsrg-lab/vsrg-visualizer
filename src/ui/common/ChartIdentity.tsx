@@ -17,15 +17,15 @@ export function ChartIdentity({ chart, durationMs }: ChartIdentityProps) {
 
 	return (
 		<div className="flex flex-col gap-1.5">
-			<div className="text-[17px] font-semibold leading-[1.3] text-strong text-pretty break-words">
+			<div className="text-[17px] font-semibold leading-[1.3] text-strong text-pretty wrap-break-word">
 				{chart.metadata.title || chart.metadata.original}
 			</div>
-			<div className="text-[13px] text-dim break-words">{chart.metadata.artist}</div>
+			<div className="text-[13px] text-dim wrap-break-word">{chart.metadata.artist}</div>
 			<div className="flex flex-wrap gap-1.5 pt-1">
 				{chips.map(chip => (
 					<span
 						key={chip}
-						className="max-w-full rounded-[3px] bg-surface-2 px-[7px] py-[3px] font-mono text-[10px] break-all text-body/75"
+						className="max-w-full rounded-[3px] bg-surface-2 px-1.75 py-0.75 font-mono text-[10px] break-all text-body/75"
 					>
 						{chip}
 					</span>

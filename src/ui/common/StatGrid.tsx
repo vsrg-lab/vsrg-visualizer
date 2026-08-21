@@ -11,8 +11,8 @@ type StatCellProps = {
 
 function StatCell({ label, value }: StatCellProps) {
 	return (
-		<div className="bg-surface px-2.5 py-[9px]">
-			<div className="font-mono text-[10px] tracking-[0.1em] text-micro">{label}</div>
+		<div className="bg-surface px-2.5 py-2.25">
+			<div className="font-mono text-[10px] tracking-widest text-micro">{label}</div>
 			<div className="font-mono text-[16px] tabular-nums text-strong">{value}</div>
 		</div>
 	);

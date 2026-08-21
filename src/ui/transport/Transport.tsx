@@ -109,7 +109,7 @@ export function Transport({ durationMs, events }: TransportProps) {
 	const progress = durationMs > 0 ? Math.min(timeMs, durationMs) / durationMs * 100 : 0;
 
 	return (
-		<div className="flex h-[68px] shrink-0 items-center gap-[18px] border-t border-line bg-surface px-[18px]">
+		<div className="flex h-17 shrink-0 items-center gap-4.5 border-t border-line bg-surface px-4.5">
 			<div className="flex items-center gap-1.5">
 				<IconButton label="Stop (Esc)" size={30} onClick={stop}>
 					<Square size={13} fill="currentColor" strokeWidth={0} />
@@ -118,7 +118,7 @@ export function Transport({ durationMs, events }: TransportProps) {
 					type="button"
 					title={playing ? "Pause (Space)" : "Play (Space)"}
 					aria-label={playing ? "Pause" : "Play"}
-					className="flex size-[38px] shrink-0 items-center justify-center rounded-full bg-strong text-on-strong"
+					className="flex size-9.5 shrink-0 items-center justify-center rounded-full bg-strong text-on-strong"
 					onClick={playing ? pause : play}
 				>
 					{playing
@@ -127,12 +127,12 @@ export function Transport({ durationMs, events }: TransportProps) {
 				</button>
 			</div>
 
-			<div className="flex w-[130px] shrink-0 items-baseline gap-1.5">
+			<div className="flex w-32.5 shrink-0 items-baseline gap-1.5">
 				<span className="font-mono text-[20px] tabular-nums text-strong">{formatClockCentis(timeMs)}</span>
 				<span className="font-mono text-[12px] tabular-nums text-micro">{formatClock(durationMs)}</span>
 			</div>
 
-			<div className="flex min-w-0 flex-1 flex-col gap-[5px]">
+			<div className="flex min-w-0 flex-1 flex-col gap-1.25">
 				<div className="relative flex h-2 items-center">
 					<div className="absolute inset-x-0 h-0.5 rounded-sm bg-base-300" />
 					<div
@@ -140,7 +140,7 @@ export function Transport({ durationMs, events }: TransportProps) {
 						style={{ width: `${progress}%` }}
 					/>
 					<div
-						className="absolute -ml-[5px] size-2.5 rounded-full bg-strong"
+						className="absolute -ml-1.25 size-2.5 rounded-full bg-strong"
 						style={{ left: `${progress}%` }}
 					/>
 					<input

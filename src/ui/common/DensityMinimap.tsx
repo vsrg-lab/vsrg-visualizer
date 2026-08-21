@@ -101,7 +101,7 @@ export function DensityMinimap({ density, endMs }: DensityMinimapProps) {
 			className="flex shrink-0 flex-col gap-1.5 pt-2.5"
 			style={{ width: MINIMAP_PX, paddingBottom: RECEPTOR_OFFSET_PX }}
 		>
-			<span className="font-mono text-[10px] tracking-[0.1em] text-micro [writing-mode:vertical-rl]">
+			<span className="font-mono text-[10px] tracking-widest text-micro [writing-mode:vertical-rl]">
 				NPS
 			</span>
 			<canvas

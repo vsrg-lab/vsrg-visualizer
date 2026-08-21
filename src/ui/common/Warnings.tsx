@@ -11,7 +11,7 @@ export function Warnings({ warnings }: WarningsProps) {
 			{warnings.map((warning, i) => (
 				<div
 					key={i}
-					className="shrink-0 rounded-[5px] border-l-2 border-warn-edge bg-warn-wash px-[9px] py-[7px]"
+					className="shrink-0 rounded-[5px] border-l-2 border-warn-edge bg-warn-wash px-2.25 py-1.75"
 				>
 					<div className="font-mono text-[10px] tracking-[0.08em] text-warn-ui">
 						{warning.code.toUpperCase()}
