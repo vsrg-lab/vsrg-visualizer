@@ -53,6 +53,17 @@ pnpm dev
 
 Open the local URL printed by Vite, then drop a supported chart file into the page.
 
+## Self-hosting
+
+The application is a static site with no backend, so deployment is a single container
+that serves the built files.
+
+```bash
+docker run -d -p 8080:8080 cloudholic/vsrg-visualizer:latest
+```
+
+For docker-compose, see `docker-compose.yaml` as a sample.
+
 ## Development
 
 | Command | Purpose |

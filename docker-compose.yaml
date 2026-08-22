@@ -1,0 +1,7 @@
+services:
+  vsrg-visualizer:
+    image: cloudholic/vsrg-visualizer:latest
+    container_name: vsrg-visualizer
+    restart: unless-stopped
+    ports:
+      - 8080:8080

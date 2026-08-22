@@ -1,4 +1,5 @@
 import { Application } from "pixi.js";
+import "pixi.js/unsafe-eval"; // To avoid "unsafe-eval" CSP.
 import { useEffect, useRef, useState } from "react";
 
 import type { HighwaySize } from "../../hooks/useHighwaySize";

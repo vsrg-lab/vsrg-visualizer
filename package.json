@@ -1,8 +1,13 @@
 {
   "name": "vsrg-visualizer",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
+  "engines": {
+    "node": ">=24",
+    "pnpm": ">=11.22.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -13,7 +18,7 @@
   },
   "dependencies": {
     "lucide-react": "^1.33.0",
-    "pixi.js": "^8.19.0",
+    "pixi.js": "^8.20.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "yaml": "^2.9.0",
@@ -28,7 +33,7 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "bms": "^51.0.0",
-    "daisyui": "^5.7.19",
+    "daisyui": "^5.7.20",
     "eslint": "^10.8.1",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jsdoc": "^64.2.1",
