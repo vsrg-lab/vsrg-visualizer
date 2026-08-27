@@ -23,6 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
+# Agent files
 /.claude/
 /.superpowers/
 /scratch/
